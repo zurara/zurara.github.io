@@ -4,13 +4,23 @@
     box-sizing: border-box;
 }
 
+:root {
+    --font-urbanist: 'Urbanist', sans-serif;
+    --background-beige: rgba(246, 243, 238, 1);
+    --background-dark: rgba(78, 78, 78, 1);
+    --brand-light: rgba(175, 188, 255, 1);
+    --brand-orange: rgba(208, 94, 64, 1);
+    --content-brown: rgba(50, 20, 13, 1);
+    --content-white: rgba(255, 255, 255, 1);
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: var(--font-urbanist);
     line-height: 1.6;
 }
 
 nav {
-    padding: 1rem;
+    padding: 0;
 }
 
 nav ul {
@@ -128,14 +138,19 @@ h1 {
     background: #555;
 }
 
-.nav-container {
+.nav-container,
+main {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 2rem;
+}
+
+.nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
     background-color: #fff;
+    padding: 1rem 2rem;
 }
 
 .logo img {
@@ -143,38 +158,79 @@ h1 {
 }
 
 .hero {
-    padding: 4rem 2rem;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 4rem 0;
+    max-width: none;
+    margin: 0;
+}
+
+.introduction {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 11px;
+    height: 168px;
+    margin-left: 0;
+}
+
+.frame {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.greeting {
+    display: inline-flex;
+    gap: 10px;
+}
+
+.greeting h1 {
+    font-size: 2.5rem;
+    margin: 0;
     text-align: left;
 }
 
-.hero h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+.name-frame {
+    display: inline-flex;
+    gap: 4px;
+    align-items: baseline;
 }
 
-.hero h2 {
+.name-frame span {
     font-size: 2rem;
-    color: #666;
-    margin-bottom: 1.5rem;
+    color: var(--content-brown);
 }
 
-.hero p {
-    font-size: 1.2rem;
-    line-height: 1.8;
-    color: #444;
+.name-frame h2 {
+    font-size: 2rem;
+    color: var(--content-brown);
+    opacity: 0.2;
+    margin: 0;
+}
+
+.intro-text {
+    border-top: 1px solid #000000;
+    padding-top: 1rem;
+    width: 294px;
+}
+
+.intro-text p {
+    font-family: var(--font-urbanist);
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--content-brown);
+    margin: 0;
 }
 
 .projects-section {
-    padding: 2rem 0;
+    margin: 0 -2rem;
+    padding: 2rem 2rem;
     overflow-x: hidden;
 }
 
 .projects-wrapper {
+    margin: 0 -2rem;
+    padding: 0 2rem;
     display: flex;
     gap: 2rem;
-    padding: 2rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
@@ -183,6 +239,7 @@ h1 {
 .project-card {
     min-width: 300px;
     scroll-snap-align: start;
+    margin-left: 0;
 }
 
 .project-image {
@@ -228,4 +285,24 @@ h1 {
 
 .projects-wrapper::-webkit-scrollbar-thumb:hover {
     background: #555;
-} 
+}
+
+@font-face {
+    font-family: 'Urbanist';
+    src: url('../fonts/Urbanist-Regular.woff2') format('woff2'),
+         url('../fonts/Urbanist-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Urbanist';
+    src: url('../fonts/Urbanist-Medium.woff2') format('woff2'),
+         url('../fonts/Urbanist-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 添加其他字重的 @font-face 声明 */
