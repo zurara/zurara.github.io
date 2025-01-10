@@ -4,9 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Welcome to My Portfolio</h1>
-    <p>This is a simple portfolio page hosted on GitHub Pages.</p>
+    <!-- 导航栏 -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="logo.svg" alt="Logo">
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active">Projects</a></li>
+                <li><a href="articles.html">Articles</a></li>
+                <li><a href="case-studies.html">Case Studies</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <!-- 问候语和介绍 -->
+        <section class="hero">
+            <h1>High five! 🙌</h1>
+            <h2>I'm zurara wangtsaiii</h2>
+            <p>I thrive on creating clever designs out of chaos,<br>
+               now supporting early-stage tech innovation at Orthogonal Supersystems.</p>
+        </section>
+
+        <!-- 项目展示区 -->
+        <section class="projects-section">
+            <div class="projects-wrapper">
+                <div class="project-card">
+                    <div class="project-image" style="background-color: #C95D44"></div>
+                    <div class="project-info">
+                        <span class="year">2024</span>
+                        <h3>PROJECT NAME</h3>
+                        <p>Description in detail description in detail description in detail</p>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-image" style="background-color: #FEE7E7"></div>
+                    <div class="project-info">
+                        <span class="year">2024</span>
+                        <h3>PROJECT NAME</h3>
+                        <p>Description in detail description in detail description in detail</p>
+                    </div>
+                </div>
+
+                <!-- 重复6个类似的项目卡片 -->
+                <!-- 项目 3-8 的结构相同,只是背景色交替使用 #C95D44 和 #FEE7E7 -->
+            </div>
+        </section>
+    </main>
+    <script src="script.js"></script>
 </body>
 </html>
