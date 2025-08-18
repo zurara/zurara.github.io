@@ -765,6 +765,25 @@ main {
 
 .logo img {
     height: 40px;
+    width: auto;
+    transition: filter 0.3s ease;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 40px;
+    height: 40px;
+}
+
+/* Ensure logo is visible in all themes */
+[data-theme="dark"] .logo img {
+    filter: brightness(1.2) contrast(1.1);
+}
+
+[data-theme="accent"] .logo img {
+    filter: hue-rotate(20deg) saturate(0.8);
 }
 
 .hero {
