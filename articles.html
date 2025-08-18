@@ -17,28 +17,140 @@
                 <li><a href="articles.html" class="active">Articles</a></li>
                 <li><a href="case-studies.html">Case Studies</a></li>
             </ul>
+            <div class="theme-switcher">
+                <button class="theme-btn active" data-theme="light">☀️</button>
+                <button class="theme-btn" data-theme="dark">🌙</button>
+                <button class="theme-btn" data-theme="accent">💎</button>
+            </div>
         </div>
     </nav>
     <main>
-        <h1>My Articles</h1>
+        <div class="page-header">
+            <h1>Articles & Insights</h1>
+            <p class="page-subtitle">Thoughts on design, technology, and creativity</p>
+        </div>
+        
+        <div class="content-filters">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="design">Design</button>
+            <button class="filter-btn" data-category="technology">Technology</button>
+            <button class="filter-btn" data-category="productivity">Productivity</button>
+            <button class="filter-btn" data-category="career">Career</button>
+        </div>
+
         <div class="articles-list">
-            <article class="article-item">
-                <h2>The Future of AI in Web Development</h2>
-                <div class="article-meta">
-                    <span class="date">January 15, 2024</span>
-                    <span class="category">Technology</span>
+            <article class="article-item" data-category="technology">
+                <div class="article-image" style="background-color: #3B82F6"></div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="date">August 15, 2024</span>
+                        <span class="category">Technology</span>
+                        <span class="read-time">5 min read</span>
+                    </div>
+                    <h2>The Future of AI in Web Development</h2>
+                    <p>Artificial Intelligence is revolutionizing how we build and maintain web applications. From AI-powered code completion to automated testing and intelligent debugging tools, we're entering a new era of development productivity and creativity.</p>
+                    <div class="article-tags">
+                        <span class="tag">AI</span>
+                        <span class="tag">Web Development</span>
+                        <span class="tag">Automation</span>
+                    </div>
+                    <a href="#" class="read-more">Read Full Article</a>
                 </div>
-                <p>Artificial Intelligence is revolutionizing how we build and maintain web applications. In this article, we explore emerging AI tools and frameworks that are changing the landscape of web development, including AI-powered code completion, automated testing, and intelligent debugging tools...</p>
-                <a href="#" class="read-more">Read More</a>
             </article>
-            <article class="article-item">
-                <h2>Responsive Design Best Practices in 2024</h2>
-                <div class="article-meta">
-                    <span class="date">January 10, 2024</span>
-                    <span class="category">Design</span>
+
+            <article class="article-item" data-category="design">
+                <div class="article-image" style="background-color: #8B5CF6"></div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="date">August 10, 2024</span>
+                        <span class="category">Design</span>
+                        <span class="read-time">7 min read</span>
+                    </div>
+                    <h2>Responsive Design Best Practices in 2024</h2>
+                    <p>As mobile devices continue to dominate web traffic, responsive design remains crucial. Explore the latest techniques including container queries, modern CSS features, and mobile-first approaches that create seamless experiences.</p>
+                    <div class="article-tags">
+                        <span class="tag">Responsive Design</span>
+                        <span class="tag">CSS</span>
+                        <span class="tag">Mobile-First</span>
+                    </div>
+                    <a href="#" class="read-more">Read Full Article</a>
                 </div>
-                <p>As mobile devices continue to dominate web traffic, responsive design remains crucial. Learn about the latest techniques and best practices for creating seamless experiences across all devices, including new CSS features, mobile-first approaches, and performance optimization strategies...</p>
-                <a href="#" class="read-more">Read More</a>
+            </article>
+
+            <article class="article-item" data-category="productivity">
+                <div class="article-image" style="background-color: #10B981"></div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="date">August 5, 2024</span>
+                        <span class="category">Productivity</span>
+                        <span class="read-time">4 min read</span>
+                    </div>
+                    <h2>Building Effective Design Systems</h2>
+                    <p>A well-structured design system is the backbone of scalable product development. Learn how to create, maintain, and evolve design systems that grow with your team and product needs.</p>
+                    <div class="article-tags">
+                        <span class="tag">Design Systems</span>
+                        <span class="tag">Team Collaboration</span>
+                        <span class="tag">Scalability</span>
+                    </div>
+                    <a href="#" class="read-more">Read Full Article</a>
+                </div>
+            </article>
+
+            <article class="article-item" data-category="career">
+                <div class="article-image" style="background-color: #F59E0B"></div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="date">July 28, 2024</span>
+                        <span class="category">Career</span>
+                        <span class="read-time">6 min read</span>
+                    </div>
+                    <h2>Transitioning from Designer to Product Leader</h2>
+                    <p>The journey from individual contributor to product leadership requires new skills and perspectives. Here's what I learned during my transition and how to navigate this career evolution successfully.</p>
+                    <div class="article-tags">
+                        <span class="tag">Leadership</span>
+                        <span class="tag">Career Growth</span>
+                        <span class="tag">Product Management</span>
+                    </div>
+                    <a href="#" class="read-more">Read Full Article</a>
+                </div>
+            </article>
+
+            <article class="article-item" data-category="technology">
+                <div class="article-image" style="background-color: #EF4444"></div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="date">July 20, 2024</span>
+                        <span class="category">Technology</span>
+                        <span class="read-time">8 min read</span>
+                    </div>
+                    <h2>Performance Optimization in Modern Web Apps</h2>
+                    <p>Website performance directly impacts user experience and business metrics. Dive deep into modern optimization techniques including code splitting, lazy loading, and advanced caching strategies.</p>
+                    <div class="article-tags">
+                        <span class="tag">Performance</span>
+                        <span class="tag">Web Optimization</span>
+                        <span class="tag">User Experience</span>
+                    </div>
+                    <a href="#" class="read-more">Read Full Article</a>
+                </div>
+            </article>
+
+            <article class="article-item" data-category="design">
+                <div class="article-image" style="background-color: #EC4899"></div>
+                <div class="article-content">
+                    <div class="article-meta">
+                        <span class="date">July 15, 2024</span>
+                        <span class="category">Design</span>
+                        <span class="read-time">5 min read</span>
+                    </div>
+                    <h2>The Psychology of Color in Digital Interfaces</h2>
+                    <p>Color choices profoundly impact user behavior and emotional responses. Understand the science behind color psychology and how to apply it effectively in digital product design.</p>
+                    <div class="article-tags">
+                        <span class="tag">Color Theory</span>
+                        <span class="tag">Psychology</span>
+                        <span class="tag">UI Design</span>
+                    </div>
+                    <a href="#" class="read-more">Read Full Article</a>
+                </div>
             </article>
         </div>
     </main>
