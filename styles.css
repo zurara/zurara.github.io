@@ -1059,4 +1059,16 @@ main {
     background: #555;
 }
 
-/* Google Fonts provides all Urbanist font weights and styles */
+/* IMPORTANT: Only Google Fonts Urbanist is used - no local font files */
+
+/* Override any existing @font-face declarations */
+@font-face {
+    font-family: 'Urbanist';
+    src: local(''), url('') format('woff2');
+    font-display: swap;
+}
+
+/* Ensure all elements use Google Fonts Urbanist */
+html, body {
+    font-family: 'Urbanist', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif !important;
+}
