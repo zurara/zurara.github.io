@@ -23,7 +23,7 @@ const fmt = (d: Date) =>
     <header class="detail-head">
       <span class="post-date">{fmt(data.date)}</span>
       <h1 class="detail-title">{data.title}</h1>
-      <p class="detail-summary">{data.excerpt}</p>
+      {data.excerpt && <p class="detail-summary">{data.excerpt}</p>}
       {
         data.tags.length > 0 && (
           <ul class="tags" aria-label="Tags">

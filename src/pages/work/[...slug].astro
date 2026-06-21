@@ -20,11 +20,11 @@ const { data } = entry;
     <a class="back-link" href="/#work">← Work</a>
     <header class="detail-head">
       <div class="work-meta">
-        <span class="work-year">{data.year}</span>
-        <span class="work-kind">{data.role}</span>
+        {data.year && <span class="work-year">{data.year}</span>}
+        {data.role && <span class="work-kind">{data.role}</span>}
       </div>
       <h1 class="detail-title">{data.title}</h1>
-      <p class="detail-summary">{data.summary}</p>
+      {data.summary && <p class="detail-summary">{data.summary}</p>}
       {
         data.tags.length > 0 && (
           <ul class="tags" aria-label="Tags">
