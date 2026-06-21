@@ -105,7 +105,15 @@ export default config({
         featured: fields.checkbox({ label: 'Featured', defaultValue: false }),
         order: fields.integer({ label: 'Order', defaultValue: 0 }),
         draft: fields.checkbox({ label: 'Draft', defaultValue: false }),
-        content: fields.mdx({ label: 'Body' }),
+        content: fields.mdx({
+          label: 'Body',
+          options: {
+            image: {
+              directory: 'public/uploads/projects/body',
+              publicPath: '/uploads/projects/body/',
+            },
+          },
+        }),
       },
     }),
 
@@ -133,7 +141,15 @@ export default config({
           description: 'If set, the post links here instead of a detail page.',
         }),
         draft: fields.checkbox({ label: 'Draft', defaultValue: false }),
-        content: fields.mdx({ label: 'Body' }),
+        content: fields.mdx({
+          label: 'Body',
+          options: {
+            image: {
+              directory: 'public/uploads/articles/body',
+              publicPath: '/uploads/articles/body/',
+            },
+          },
+        }),
       },
     }),
   },
