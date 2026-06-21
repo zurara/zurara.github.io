@@ -1,0 +1,292 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'wangtsaiti',
+  description = '',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={canonical} />
+
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Urbanist:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style is:global>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        --ink: #0a0a0a;
+        --paper: #ffffff;
+        --muted: #6a6a6a;
+        --line: #0a0a0a;
+        --measure: 680px;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: 'Urbanist', system-ui, sans-serif;
+        font-size: 18px;
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+      }
+
+      /* ---- fixed minimal chrome ---- */
+      .topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 22px 28px;
+        background: linear-gradient(var(--paper) 60%, transparent);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+      }
+      .topbar a {
+        text-decoration: none;
+      }
+      .topbar .wordmark {
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .back-link {
+        text-decoration: none;
+        transition: opacity 0.2s ease;
+      }
+      .back-link:hover {
+        opacity: 0.55;
+      }
+
+      /* ---- article column ---- */
+      .detail {
+        max-width: var(--measure);
+        margin: 0 auto;
+        padding: 132px 28px 140px;
+      }
+      .detail-head {
+        margin-bottom: 40px;
+      }
+      .detail-kind {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 22px;
+      }
+      .work-meta {
+        display: flex;
+        gap: 16px;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 14px;
+      }
+      .post-date {
+        display: block;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 14px;
+      }
+      .detail-title {
+        font-family: 'Fraunces', Georgia, serif;
+        font-weight: 400;
+        font-size: clamp(34px, 6vw, 56px);
+        line-height: 1.06;
+        margin: 0 0 22px;
+      }
+      .detail-summary {
+        font-size: 21px;
+        line-height: 1.5;
+        color: #333;
+        margin: 0 0 22px;
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .tags li {
+        border: 1px solid var(--line);
+        padding: 4px 11px;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      /* cover — kept monochrome to match the index */
+      .detail-media {
+        margin: 0 0 48px;
+      }
+      .detail-media img {
+        width: 100%;
+        height: auto;
+        display: block;
+        filter: grayscale(1) contrast(1.02);
+        border: 1px solid var(--line);
+      }
+      .work-card-fill {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        border: 1px solid var(--line);
+        background:
+          repeating-linear-gradient(
+            45deg,
+            #f3f3f3,
+            #f3f3f3 10px,
+            #ececec 10px,
+            #ececec 20px
+          );
+      }
+
+      /* ---- prose (MDX body) ---- */
+      .prose {
+        font-size: 18px;
+      }
+      .prose > * + * {
+        margin-top: 1.25em;
+      }
+      .prose h2,
+      .prose h3,
+      .prose h4 {
+        font-family: 'Fraunces', Georgia, serif;
+        font-weight: 500;
+        line-height: 1.2;
+        margin-top: 1.9em;
+      }
+      .prose h2 {
+        font-size: 28px;
+      }
+      .prose h3 {
+        font-size: 22px;
+      }
+      .prose a {
+        color: var(--ink);
+        text-underline-offset: 3px;
+        text-decoration-thickness: 1px;
+      }
+      .prose a:hover {
+        text-decoration: none;
+      }
+      .prose strong {
+        font-weight: 600;
+      }
+      .prose blockquote {
+        margin: 1.6em 0;
+        padding-left: 22px;
+        border-left: 2px solid var(--ink);
+        font-family: 'Fraunces', Georgia, serif;
+        font-style: italic;
+        font-size: 21px;
+        color: #222;
+      }
+      .prose ul,
+      .prose ol {
+        padding-left: 1.3em;
+      }
+      .prose li + li {
+        margin-top: 0.4em;
+      }
+      .prose img {
+        width: 100%;
+        height: auto;
+        filter: grayscale(1);
+        border: 1px solid var(--line);
+      }
+      .prose code {
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 0.88em;
+        background: #f2f2f2;
+        padding: 0.12em 0.4em;
+        border-radius: 2px;
+      }
+      .prose pre {
+        background: #0a0a0a;
+        color: #f5f5f5;
+        padding: 18px 20px;
+        overflow-x: auto;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+      .prose pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+      }
+      .prose hr {
+        border: none;
+        border-top: 1px solid var(--line);
+        margin: 2.4em 0;
+      }
+
+      .detail-foot {
+        max-width: var(--measure);
+        margin: 0 auto;
+        padding: 0 28px 90px;
+        border-top: 1px solid var(--line);
+      }
+      .detail-foot .back-link {
+        display: inline-block;
+        padding-top: 28px;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <a class="wordmark" href="/">wangtsaiti</a>
+      <a class="back-link" href="/">← Index</a>
+    </div>
+    <slot />
+  </body>
+</html>

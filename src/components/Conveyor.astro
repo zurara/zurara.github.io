@@ -1,0 +1,274 @@
+---
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order || b.data.year.localeCompare(a.data.year)
+);
+const articles = (await getCollection('articles', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+
+type Card = {
+  kind: 'Project' | 'Article';
+  title: string;
+  meta: string;
+  href: string;
+  external: boolean;
+  tags: string[];
+};
+
+const projectCards: Card[] = projects.map((e) => ({
+  kind: 'Project',
+  title: e.data.title,
+  meta: e.data.year,
+  href: e.data.externalUrl ?? `/work/${e.id}`,
+  external: Boolean(e.data.externalUrl),
+  tags: e.data.tags,
+}));
+
+const articleCards: Card[] = articles.map((e) => ({
+  kind: 'Article',
+  title: e.data.title,
+  meta: fmtDate(e.data.date),
+  href: e.data.externalUrl ?? `/writing/${e.id}`,
+  external: Boolean(e.data.externalUrl),
+  tags: e.data.tags,
+}));
+
+// Interleave projects and articles so the two kinds alternate across the track.
+const cards: Card[] = [];
+const max = Math.max(projectCards.length, articleCards.length);
+for (let i = 0; i < max; i++) {
+  if (projectCards[i]) cards.push(projectCards[i]);
+  if (articleCards[i]) cards.push(articleCards[i]);
+}
+---
+
+<main id="main">
+  <header class="cv-chrome cv-tl">wangtsaiti</header>
+  <div class="cv-chrome cv-tr">selected work &amp; writing</div>
+  <a class="cv-chrome cv-bl" href="mailto:zurara@orthogonal.dev">zurara@orthogonal.dev</a>
+  <div class="cv-chrome cv-br" id="cv-hint">scroll →</div>
+
+  <section class="conveyor" id="cards" aria-label="Projects and writing">
+    <div class="cv-track" id="cv-track">
+      {
+        cards.map((c) => (
+          <a
+            class="cv-card"
+            data-card
+            href={c.href}
+            target={c.external ? '_blank' : undefined}
+            rel={c.external ? 'noopener' : undefined}
+          >
+            <span class="cv-kind">
+              {c.kind}
+              {c.external && <span class="cv-ext" aria-hidden="true">↗</span>}
+            </span>
+            <span class="cv-title">{c.title}</span>
+            <span class="cv-meta">{c.meta}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</main>
+
+<style>
+  .conveyor {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: #fff;
+  }
+  .cv-track {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* black & white, minimal */
+  .cv-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 320px;
+    padding: 22px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #0a0a0a;
+    transform-origin: center;
+    will-change: transform;
+    transition:
+      background 0.35s ease,
+      color 0.35s ease;
+  }
+  .cv-card:hover,
+  .cv-card:focus-visible {
+    background: #0a0a0a;
+    color: #fff;
+    outline: none;
+  }
+
+  .cv-kind {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .cv-ext {
+    margin-left: 4px;
+  }
+  .cv-title {
+    margin-top: auto;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 27px;
+    line-height: 1.12;
+  }
+  .cv-meta {
+    margin-top: 12px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+  }
+
+  /* fixed chrome */
+  .cv-chrome {
+    position: fixed;
+    z-index: 5;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: #0a0a0a;
+  }
+  .cv-tl {
+    top: 26px;
+    left: 28px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .cv-tr {
+    top: 26px;
+    right: 28px;
+  }
+  .cv-bl {
+    bottom: 24px;
+    left: 28px;
+  }
+  .cv-br {
+    bottom: 24px;
+    right: 28px;
+    opacity: 0.55;
+  }
+
+  @media (max-width: 600px) {
+    .cv-card {
+      width: 200px;
+      height: 270px;
+    }
+  }
+</style>
+
+<script>
+  const track = document.getElementById('cv-track');
+  const hint = document.getElementById('cv-hint');
+  const cards = track ? Array.from(track.querySelectorAll<HTMLElement>('.cv-card')) : [];
+
+  if (track && cards.length) {
+    // each card keeps a FIXED tilt / height / depth — they translate, never self-rotate
+    const TILTS = [-6, 5, -4, 7, -7, 3, -5, 6, -3, 4];
+    const YPCT = [0.2, 0.08, 0.36, 0.15, 0.3, 0.1, 0.38, 0.18, 0.28, 0.13];
+    const SCALES = [1.0, 1.1, 0.82, 0.92, 1.05, 0.78, 0.88, 1.08, 0.84, 0.96];
+
+    const SPACING = 400;
+    const W = cards.length * SPACING;
+    const SHIFT = 380;
+    const wrap = (v: number) => ((v % W) + W) % W;
+
+    const model = cards.map((el, i) => ({
+      el,
+      anchor: i * SPACING,
+      tilt: TILTS[i % TILTS.length],
+      yPct: YPCT[i % YPCT.length],
+      scale: SCALES[i % SCALES.length],
+      x: 0,
+    }));
+
+    let target = 0;
+    let cur = 0;
+    let hideHint = false;
+
+    const nudge = (d: number) => {
+      target += d;
+      if (!hideHint && hint) {
+        hint.style.opacity = '0';
+        hideHint = true;
+      }
+    };
+
+    window.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        nudge(e.deltaY * 0.9); // scroll down -> cards travel right -> left
+      },
+      { passive: false }
+    );
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') nudge(SPACING);
+      else if (e.key === 'ArrowLeft') nudge(-SPACING);
+    });
+
+    // touch swipe + a guard so a swipe doesn't fire a card's navigation
+    let lastX: number | null = null;
+    let moved = 0;
+    window.addEventListener(
+      'touchstart',
+      (e) => {
+        lastX = e.touches[0].clientX;
+        moved = 0;
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      'touchmove',
+      (e) => {
+        if (lastX === null) return;
+        const tx = e.touches[0].clientX;
+        moved += Math.abs(tx - lastX);
+        nudge((lastX - tx) * 1.6);
+        lastX = tx;
+      },
+      { passive: true }
+    );
+    window.addEventListener('touchend', () => {
+      lastX = null;
+    });
+    cards.forEach((el) =>
+      el.addEventListener('click', (e) => {
+        if (moved > 12) e.preventDefault(); // it was a swipe, not a tap
+      })
+    );
+
+    const frame = () => {
+      cur += (target - cur) * 0.12; // light lerp smoothing
+      const vh = window.innerHeight;
+      for (const c of model) {
+        const x = wrap(c.anchor - cur) - SHIFT; // slides left, reappears right
+        const y = c.yPct * vh;
+        c.x = x;
+        c.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(
+          1
+        )}px) rotate(${c.tilt}deg) scale(${c.scale})`;
+      }
+      requestAnimationFrame(frame);
+    };
+    frame();
+  }
+</script>

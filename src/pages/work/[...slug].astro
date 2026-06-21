@@ -1,6 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
 
 export async function getStaticPaths() {
   const entries = await getCollection(
@@ -15,10 +15,10 @@ const { Content } = await render(entry);
 const { data } = entry;
 ---
 
-<BaseLayout title={`${data.title} — wangtsaiti`} description={data.summary}>
-  <article class="detail wrap">
-    <a class="back-link" href="/#work">← Work</a>
+<ArticleLayout title={`${data.title} — wangtsaiti`} description={data.summary}>
+  <article class="detail">
     <header class="detail-head">
+      <span class="detail-kind">Project</span>
       <div class="work-meta">
         {data.year && <span class="work-year">{data.year}</span>}
         {data.role && <span class="work-kind">{data.role}</span>}
@@ -36,7 +36,7 @@ const { data } = entry;
       }
     </header>
 
-    <div class="detail-media" style={`--accent-fill:${data.accent}`}>
+    <div class="detail-media">
       {data.cover ? <img src={data.cover} alt="" /> : <span class="work-card-fill" aria-hidden="true" />}
     </div>
 
@@ -44,4 +44,8 @@ const { data } = entry;
       <Content />
     </div>
   </article>
-</BaseLayout>
+
+  <footer class="detail-foot">
+    <a class="back-link" href="/">← Back to index</a>
+  </footer>
+</ArticleLayout>
