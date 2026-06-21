@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zurara.github.io/sitemap-index.xml

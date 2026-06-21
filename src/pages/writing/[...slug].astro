@@ -1,0 +1,50 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection(
+    'articles',
+    ({ data }) => !data.draft && !data.externalUrl
+  );
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { data } = entry;
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BaseLayout title={`${data.title} — wangtsaiti`} description={data.excerpt}>
+  <article class="detail wrap">
+    <a class="back-link" href="/#writing">← Writing</a>
+    <header class="detail-head">
+      <span class="post-date">{fmt(data.date)}</span>
+      <h1 class="detail-title">{data.title}</h1>
+      <p class="detail-summary">{data.excerpt}</p>
+      {
+        data.tags.length > 0 && (
+          <ul class="tags" aria-label="Tags">
+            {data.tags.map((t) => (
+              <li>{t}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    {
+      data.cover && (
+        <div class="detail-media">
+          <img src={data.cover} alt="" />
+        </div>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

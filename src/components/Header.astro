@@ -1,0 +1,25 @@
+---
+// Site header: wordmark, primary nav, theme toggle.
+// Nav links point to homepage section anchors.
+const nav = [
+  { href: '/#work', label: 'Work' },
+  { href: '/#writing', label: 'Writing' },
+  { href: '/#about', label: 'About' },
+  { href: '/#contact', label: 'Contact' },
+];
+---
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="wordmark" href="/" aria-label="Home">
+      <img src="/logo.svg" alt="" class="wordmark-mark" />
+      <span>zurara</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+    <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+      <span class="theme-toggle-icon" aria-hidden="true"></span>
+    </button>
+  </div>
+</header>

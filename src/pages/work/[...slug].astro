@@ -1,0 +1,47 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection(
+    'projects',
+    ({ data }) => !data.draft && !data.externalUrl
+  );
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { data } = entry;
+---
+
+<BaseLayout title={`${data.title} — wangtsaiti`} description={data.summary}>
+  <article class="detail wrap">
+    <a class="back-link" href="/#work">← Work</a>
+    <header class="detail-head">
+      <div class="work-meta">
+        <span class="work-year">{data.year}</span>
+        <span class="work-kind">{data.role}</span>
+      </div>
+      <h1 class="detail-title">{data.title}</h1>
+      <p class="detail-summary">{data.summary}</p>
+      {
+        data.tags.length > 0 && (
+          <ul class="tags" aria-label="Tags">
+            {data.tags.map((t) => (
+              <li>{t}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    <div class="detail-media" style={`--accent-fill:${data.accent}`}>
+      {data.cover ? <img src={data.cover} alt="" /> : <span class="work-card-fill" aria-hidden="true" />}
+    </div>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

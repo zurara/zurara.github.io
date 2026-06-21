@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('articles', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+const linkFor = (entry: (typeof posts)[number]) =>
+  entry.data.externalUrl ?? `/writing/${entry.id}`;
+const isExternal = (entry: (typeof posts)[number]) => Boolean(entry.data.externalUrl);
+---
+
+<section class="section wrap" id="writing">
+  <div class="section-head reveal">
+    <h2 class="section-title">Writing</h2>
+    <p class="section-note">
+      Notes on design, systems, and building with early-stage teams.
+    </p>
+  </div>
+
+  {
+    posts.length === 0 ? (
+      <p class="empty-note reveal">First pieces coming soon.</p>
+    ) : (
+      <ul class="post-list">
+        {posts.map((entry) => (
+          <li class="post reveal">
+            <a
+              href={linkFor(entry)}
+              class="post-link"
+              target={isExternal(entry) ? '_blank' : undefined}
+              rel={isExternal(entry) ? 'noopener' : undefined}
+            >
+              <span class="post-date">{fmt(entry.data.date)}</span>
+              <span class="post-title">{entry.data.title}</span>
+              <span class="post-arrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</section>
