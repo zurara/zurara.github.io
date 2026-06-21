@@ -1,34 +1,24 @@
+---
+import site from '../content/site.json';
+---
+
 <section class="section wrap about" id="about">
   <div class="section-head reveal">
     <h2 class="section-title">About</h2>
   </div>
   <div class="about-grid">
     <div class="about-body reveal">
-      <p>
-        I'm a designer who's happiest in the messy early middle of a problem —
-        where the brief is vague, the constraints keep moving, and the job is to
-        make something clear out of all of it.
-      </p>
-      <p>
-        Right now I'm at <a href="https://orthogonal.dev" target="_blank" rel="noopener"
-          >Orthogonal Supersystems</a
-        >, helping early-stage tech move from idea to something people can
-        actually use. I care about craft, calm interfaces, and shipping.
-      </p>
+      {site.aboutParagraphs.map((p) => <p>{p}</p>)}
     </div>
     <dl class="about-facts reveal">
-      <div>
-        <dt>Based in</dt>
-        <dd>Remote</dd>
-      </div>
-      <div>
-        <dt>Focus</dt>
-        <dd>Product &amp; design</dd>
-      </div>
-      <div>
-        <dt>Working with</dt>
-        <dd>Early-stage teams</dd>
-      </div>
+      {
+        site.aboutFacts.map((fact) => (
+          <div>
+            <dt>{fact.label}</dt>
+            <dd>{fact.value}</dd>
+          </div>
+        ))
+      }
     </dl>
   </div>
 </section>

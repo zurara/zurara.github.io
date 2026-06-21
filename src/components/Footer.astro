@@ -1,10 +1,11 @@
 ---
+import site from '../content/site.json';
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
   <div class="wrap footer-inner">
-    <span>© {year} wangtsaiti</span>
+    <span>© {year} {site.name}</span>
     <span>Built with care.</span>
   </div>
 </footer>

@@ -1,14 +1,16 @@
+---
+import site from '../content/site.json';
+---
+
 <section class="hero wrap" id="top">
-  <p class="eyebrow reveal">High five &nbsp;🙌</p>
+  <p class="eyebrow reveal">{site.greeting}</p>
   <h1 class="hero-title reveal">
-    I turn <em>chaos</em><br />
-    into clever, deliberate work.
+    {site.heroBefore} <em>{site.heroEmphasis}</em><br />
+    {site.heroAfter}
   </h1>
   <p class="hero-lede reveal">
-    I'm <strong>wangtsaiti</strong> — a designer supporting early-stage tech
-    innovation at <a href="https://orthogonal.dev" target="_blank" rel="noopener"
-      >Orthogonal&nbsp;Supersystems</a
-    >.
+    I'm <strong>{site.name}</strong> — {site.introMiddle}{' '}
+    <a href={site.orgUrl} target="_blank" rel="noopener">{site.orgName}</a>.
   </p>
   <div class="hero-actions reveal">
     <a class="btn btn-primary" href="#work">See selected work</a>
@@ -16,6 +18,6 @@
   </div>
   <p class="status reveal">
     <span class="status-dot" aria-hidden="true"></span>
-    Currently — shaping product &amp; design for early-stage teams
+    {site.status}
   </p>
 </section>

@@ -1,19 +1,22 @@
+---
+import site from '../content/site.json';
+---
+
 <section class="section wrap contact" id="contact">
   <div class="reveal">
-    <h2 class="contact-title">Let's make something.</h2>
-    <p class="contact-lede">
-      Have a problem worth untangling? I'd love to hear about it.
-    </p>
-    <a class="contact-email" href="mailto:zurara@orthogonal.dev"
-      >zurara@orthogonal.dev</a
-    >
+    <h2 class="contact-title">{site.contactTitle}</h2>
+    <p class="contact-lede">{site.contactLede}</p>
+    <a class="contact-email" href={`mailto:${site.email}`}>{site.email}</a>
     <ul class="socials" aria-label="Elsewhere">
-      <li>
-        <a href="https://github.com/zurara" target="_blank" rel="noopener">GitHub</a>
-      </li>
-      <li>
-        <a href="https://orthogonal.dev" target="_blank" rel="noopener">Orthogonal</a>
-      </li>
+      {
+        site.socials.map((s) => (
+          <li>
+            <a href={s.url} target="_blank" rel="noopener">
+              {s.label}
+            </a>
+          </li>
+        ))
+      }
     </ul>
   </div>
 </section>
