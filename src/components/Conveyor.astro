@@ -185,18 +185,19 @@ for (let i = 0; i < max; i++) {
     const YPCT = [0.2, 0.08, 0.36, 0.15, 0.3, 0.1, 0.38, 0.18, 0.28, 0.13];
     const SCALES = [1.0, 1.1, 0.82, 0.92, 1.05, 0.78, 0.88, 1.08, 0.84, 0.96];
 
-    const SPACING = 400;
-    const W = cards.length * SPACING;
-    const SHIFT = 380;
+    const N = cards.length;
+    const MIN_SPACING = 380; // gap between cards on narrow screens
+    const CARDW = 300; // approx card footprint, for wrap/spacing math
+    let spacing = 400; // recomputed each frame from the viewport
+    let W = N * spacing;
     const wrap = (v: number) => ((v % W) + W) % W;
 
     const model = cards.map((el, i) => ({
       el,
-      anchor: i * SPACING,
+      i,
       tilt: TILTS[i % TILTS.length],
       yPct: YPCT[i % YPCT.length],
       scale: SCALES[i % SCALES.length],
-      x: 0,
     }));
 
     let target = 0;
@@ -221,8 +222,8 @@ for (let i = 0; i < max; i++) {
     );
 
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') nudge(SPACING);
-      else if (e.key === 'ArrowLeft') nudge(-SPACING);
+      if (e.key === 'ArrowRight') nudge(spacing);
+      else if (e.key === 'ArrowLeft') nudge(-spacing);
     });
 
     // touch swipe + a guard so a swipe doesn't fire a card's navigation
@@ -258,11 +259,15 @@ for (let i = 0; i < max; i++) {
 
     const frame = () => {
       cur += (target - cur) * 0.12; // light lerp smoothing
+      const vw = window.innerWidth;
       const vh = window.innerHeight;
+      // keep the loop period at least as wide as the viewport, so the track
+      // always fills the screen (no empty band) and wraps seamlessly
+      spacing = Math.max(MIN_SPACING, (vw + CARDW) / N);
+      W = N * spacing;
       for (const c of model) {
-        const x = wrap(c.anchor - cur) - SHIFT; // slides left, reappears right
+        const x = wrap(c.i * spacing - cur) - CARDW; // exits left, re-enters right
         const y = c.yPct * vh;
-        c.x = x;
         c.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(
           1
         )}px) rotate(${c.tilt}deg) scale(${c.scale})`;
