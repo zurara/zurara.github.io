@@ -62,6 +62,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         line-height: 1.7;
         -webkit-font-smoothing: antialiased;
       }
+      /* center the column via flex — immune to any margin:auto edge cases */
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+      }
       a {
         color: inherit;
       }
@@ -99,6 +106,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 
       /* ---- article column ---- */
       .detail {
+        width: 100%;
         max-width: var(--measure);
         margin: 0 auto;
         padding: 132px 28px 140px;
@@ -269,6 +277,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       }
 
       .detail-foot {
+        width: 100%;
         max-width: var(--measure);
         margin: 0 auto;
         padding: 0 28px 90px;
