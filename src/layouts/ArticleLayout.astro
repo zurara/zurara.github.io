@@ -53,6 +53,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       html,
       body {
         margin: 0;
+        width: 100%;
+        overflow-x: hidden; /* nothing can shift the centered column sideways */
         background: var(--paper);
         color: var(--ink);
         font-family: 'Urbanist', system-ui, sans-serif;
@@ -185,6 +187,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       /* ---- prose (MDX body) ---- */
       .prose {
         font-size: 18px;
+        overflow-wrap: break-word; /* long URLs/strings can't force overflow */
+      }
+      .prose :is(img, pre, table, iframe, video, figure) {
+        max-width: 100%;
       }
       .prose > * + * {
         margin-top: 1.25em;
@@ -273,6 +279,39 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         padding-top: 28px;
         font-size: 13px;
         letter-spacing: 0.06em;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          font-size: 17px;
+        }
+        .topbar {
+          padding: 16px 18px;
+        }
+        .detail {
+          padding: 92px 20px 80px;
+        }
+        .detail-head {
+          margin-bottom: 32px;
+        }
+        .detail-summary {
+          font-size: 18px;
+        }
+        .prose {
+          font-size: 17px;
+        }
+        .prose h2 {
+          font-size: 24px;
+        }
+        .prose h3 {
+          font-size: 20px;
+        }
+        .prose blockquote {
+          font-size: 19px;
+        }
+        .detail-foot {
+          padding: 0 20px 72px;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {

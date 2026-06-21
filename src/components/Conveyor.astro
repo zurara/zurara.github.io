@@ -166,10 +166,42 @@ for (let i = 0; i < max; i++) {
     opacity: 0.55;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 640px) {
     .cv-card {
-      width: 200px;
-      height: 270px;
+      width: 188px;
+      height: 252px;
+      padding: 16px 16px 18px;
+    }
+    .cv-title {
+      font-size: 21px;
+    }
+    .cv-kind {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+    }
+    .cv-chrome {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+    .cv-tl,
+    .cv-tr {
+      top: 18px;
+    }
+    .cv-tl {
+      left: 18px;
+    }
+    .cv-tr {
+      right: 18px;
+      max-width: 42%;
+      text-align: right;
+    }
+    .cv-bl {
+      left: 18px;
+      bottom: 18px;
+    }
+    .cv-br {
+      right: 18px;
+      bottom: 18px;
     }
   }
 </style>
