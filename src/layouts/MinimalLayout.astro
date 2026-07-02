@@ -50,6 +50,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         color: #0a0a0a;
         font-family: 'Urbanist', system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
+        /* the home is drawing paper — drags draw, they never select text */
+        user-select: none;
+        -webkit-user-select: none;
       }
       a {
         color: inherit;

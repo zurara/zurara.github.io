@@ -51,7 +51,8 @@ for (let i = 0; i < max; i++) {
   <header class="cv-chrome cv-tl">wangtsaiti</header>
   <div class="cv-chrome cv-tr">selected work &amp; writing</div>
   <a class="cv-chrome cv-bl" href="mailto:zurara@orthogonal.dev">zurara@orthogonal.dev</a>
-  <div class="cv-chrome cv-br" id="cv-hint">scroll →</div>
+  <div class="cv-chrome cv-br" id="cv-hint">scroll → &nbsp;·&nbsp; draw ✎</div>
+  <canvas id="cv-pencil" aria-hidden="true"></canvas>
 
   <section class="conveyor" id="cards" aria-label="Projects and writing">
     <div class="cv-track" id="cv-track">
@@ -82,11 +83,49 @@ for (let i = 0; i < max; i++) {
     position: fixed;
     inset: 0;
     overflow: hidden;
-    background: #fff;
+    /* transparent so the paper canvas below shows through to the cards;
+       z-index lifts the cards ABOVE the paper so frosted glass blurs it */
+    background: transparent;
+    z-index: 2;
   }
   .cv-track {
     position: absolute;
     inset: 0;
+  }
+
+  /* pencil paper layer — sits UNDER the cards so frosted glass blurs it,
+     and never intercepts input */
+  #cv-pencil {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .conveyor {
+    /* a little pencil, hotspot at its tip (3,21) */
+    cursor:
+      url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24"%3E%3Cpath d="M3 21l1.5-5L16 4.5a2.1 2.1 0 0 1 3 3L7.5 19 3 21z" fill="%23fff" stroke="%230a0a0a" stroke-width="1.5" stroke-linejoin="round"/%3E%3Cpath d="M4.5 16.5L7 19" stroke="%230a0a0a" stroke-width="1.2"/%3E%3C/svg%3E')
+        3 21,
+      crosshair;
+  }
+  /* cards are dragged with the pencil point too — cursor stays a pencil */
+  .cv-card {
+    cursor: inherit;
+  }
+  /* each card carries its own pencil marks — they travel with the card */
+  .cv-card :global(.cv-ink) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  /* drawing drags must never select text */
+  main {
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   /* black & white, minimal */
@@ -99,19 +138,19 @@ for (let i = 0; i < max; i++) {
     padding: 22px 22px 24px;
     display: flex;
     flex-direction: column;
-    background: #fff;
+    /* frosted glass: paper strokes behind the card blur through, neutral white.
+       Low opacity + strong blur = the frosting reads clearly */
+    /* 超清磨砂 — barely-there frosting, just enough to read as glass */
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(1.8px);
+    -webkit-backdrop-filter: blur(1.8px);
     border: 1px solid #0a0a0a;
     transform-origin: center;
     will-change: transform;
-    transition:
-      background 0.35s ease,
-      color 0.35s ease;
   }
-  .cv-card:hover,
   .cv-card:focus-visible {
-    background: #0a0a0a;
-    color: #fff;
     outline: none;
+    border-width: 2px;
   }
 
   .cv-kind {
@@ -214,10 +253,15 @@ for (let i = 0; i < max; i++) {
   if (track && cards.length) {
     // each card keeps a FIXED tilt / height / depth — they translate, never self-rotate
     const TILTS = [-6, 5, -4, 7, -7, 3, -5, 6, -3, 4];
-    const YPCT = [0.2, 0.08, 0.36, 0.15, 0.3, 0.1, 0.38, 0.18, 0.28, 0.13];
+    const YPCT = [0.32, 0.2, 0.48, 0.27, 0.42, 0.22, 0.5, 0.3, 0.4, 0.25];
     const SCALES = [1.0, 1.1, 0.82, 0.92, 1.05, 0.78, 0.88, 1.08, 0.84, 0.96];
 
     const N = cards.length;
+    // net shove ≈ PUSH_K / (1 - FRICTION) of the stroke length that crosses the
+    // card, so 0.01 → a full pass across a card nudges it ~8% of the way
+    const PUSH_K = 0.01;
+    const TORQUE_K = 0.00004; // off-center hits spin the card slightly
+    const FRICTION = 0.88; // per-frame velocity loss — the card slides, then stops
     const MIN_SPACING = 380; // gap between cards on narrow screens
     const CARDW = 300; // approx card footprint, for wrap/spacing math
     let spacing = 400; // recomputed each frame from the viewport
@@ -230,6 +274,13 @@ for (let i = 0; i < max; i++) {
       tilt: TILTS[i % TILTS.length],
       yPct: YPCT[i % YPCT.length],
       scale: SCALES[i % SCALES.length],
+      // physical shove from pencil strokes: displacement + velocity + spin
+      px: 0,
+      py: 0,
+      pr: 0,
+      vx: 0,
+      vy: 0,
+      vr: 0,
     }));
 
     let target = 0;
@@ -285,9 +336,278 @@ for (let i = 0; i < max; i++) {
     });
     cards.forEach((el) =>
       el.addEventListener('click', (e) => {
-        if (moved > 12) e.preventDefault(); // it was a swipe, not a tap
+        if (moved > 12 || strokeDist > 8) e.preventDefault(); // swipe or pencil stroke, not a tap
       })
     );
+
+    // ---------------------------------------------------------------
+    // pencil layer — the whole home is a loop of paper you can draw on.
+    // Strokes live on an offscreen "paper" canvas one loop-period wide,
+    // so they travel and wrap with the conveyor. The visible canvas sits
+    // on top with pointer-events:none; input arrives via window listeners,
+    // so card hover/click keep working.
+    // ---------------------------------------------------------------
+    const pencil = document.getElementById('cv-pencil') as HTMLCanvasElement;
+    const vctx = pencil.getContext('2d')!;
+    const paper = document.createElement('canvas');
+    const pctx = paper.getContext('2d')!;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // paper loop width is fixed at load so strokes never distort;
+    // it matches the card loop at load and simply tiles if that drifts on resize
+    const PW = Math.max(N * Math.max(MIN_SPACING, (window.innerWidth + CARDW) / N), window.innerWidth);
+    const wrapP = (v: number) => ((v % PW) + PW) % PW;
+
+    const sizePencil = () => {
+      pencil.width = window.innerWidth * dpr;
+      pencil.height = window.innerHeight * dpr;
+      if (window.innerHeight * dpr > paper.height) {
+        // grow the paper downward without losing existing strokes
+        const keep = document.createElement('canvas');
+        keep.width = paper.width;
+        keep.height = paper.height;
+        if (paper.width) keep.getContext('2d')!.drawImage(paper, 0, 0);
+        paper.width = PW * dpr;
+        paper.height = window.innerHeight * dpr;
+        if (keep.width) pctx.drawImage(keep, 0, 0);
+      }
+    };
+    sizePencil();
+    window.addEventListener('resize', sizePencil);
+
+    // -- graphite grain: stamp jittered specks instead of a smooth line
+    const stampOn = (ctx: CanvasRenderingContext2D, x: number, y: number, alpha: number, size: number) => {
+      ctx.fillStyle = '#262626';
+      for (let i = 0; i < 10; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * size;
+        ctx.globalAlpha = alpha * (0.25 + Math.random() * 0.75);
+        ctx.fillRect((x + Math.cos(a) * r) * dpr, (y + Math.sin(a) * r) * dpr, dpr, dpr);
+      }
+      ctx.globalAlpha = 1;
+    };
+    const stamp = (x: number, y: number, alpha: number, size: number) =>
+      stampOn(pctx, x, y, alpha, size);
+
+    // every card gets its own ink layer; marks on a card move WITH the card
+    const cardInk = new Map<HTMLElement, CanvasRenderingContext2D>();
+    for (const c of model) {
+      const cv = document.createElement('canvas');
+      cv.className = 'cv-ink';
+      cv.width = c.el.offsetWidth * dpr;
+      cv.height = c.el.offsetHeight * dpr;
+      c.el.appendChild(cv);
+      cardInk.set(c.el, cv.getContext('2d')!);
+    }
+    // screen point -> card-local point (undo the card's translate/rotate/scale)
+    const toCardLocal = (c: (typeof model)[number], sx: number, sy: number) => {
+      const r = c.el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const ang = (-(c.tilt + c.pr) * Math.PI) / 180;
+      const dx0 = sx - cx;
+      const dy0 = sy - cy;
+      return {
+        x: (dx0 * Math.cos(ang) - dy0 * Math.sin(ang)) / c.scale + c.el.offsetWidth / 2,
+        y: (dx0 * Math.sin(ang) + dy0 * Math.cos(ang)) / c.scale + c.el.offsetHeight / 2,
+      };
+    };
+
+    // -- pencil sound: looped noise -> bandpass -> gain, driven by stroke speed
+    let sound: { ctx: AudioContext; gain: GainNode; bp: BiquadFilterNode } | null = null;
+    const initSound = () => {
+      if (sound) {
+        sound.ctx.resume();
+        return;
+      }
+      try {
+        const actx = new AudioContext();
+        const buf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        const src = actx.createBufferSource();
+        src.buffer = buf;
+        src.loop = true;
+        const bp = actx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 1200;
+        bp.Q.value = 0.7;
+        const gain = actx.createGain();
+        gain.gain.value = 0;
+        src.connect(bp).connect(gain).connect(actx.destination);
+        src.start();
+        sound = { ctx: actx, gain, bp };
+      } catch {
+        /* no audio — draw silently */
+      }
+    };
+    const soundAt = (speed: number) => {
+      if (!sound) return;
+      const t = sound.ctx.currentTime;
+      const g = Math.min(0.22, 0.02 + speed * 0.06);
+      sound.gain.gain.setTargetAtTime(g, t, 0.03);
+      sound.bp.frequency.setTargetAtTime(900 + Math.min(2400, speed * 900), t, 0.05);
+    };
+    const soundOff = () => {
+      if (sound) sound.gain.gain.setTargetAtTime(0, sound.ctx.currentTime, 0.06);
+    };
+
+    // -- stroke input (mouse/pen; touch keeps driving the conveyor)
+    let drawing = false;
+    let strokeDist = 0;
+    let dirty = false;
+    let last = { x: 0, y: 0, t: 0 };
+
+    // pressing a card picks it up (drag); pressing bare paper draws
+    let dragCard: (typeof model)[number] | null = null;
+    // stroke/card contact state: entering a card bumps it and breaks the line
+    let prevHit: (typeof model)[number] | null = null;
+    let inkGap = 0; // px of stroke left un-inked right after bumping into a card
+
+    window.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch' || e.button !== 0) return;
+      strokeDist = 0;
+      last = { x: e.clientX, y: e.clientY, t: performance.now() };
+      const hitEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cv-card');
+      if (hitEl) {
+        dragCard = model.find((m) => m.el === hitEl) ?? null;
+        if (dragCard) {
+          dragCard.vx = 0;
+          dragCard.vy = 0;
+          // the pencil point digs in to drag: a heavy dot on the card face
+          const ink = cardInk.get(dragCard.el);
+          if (ink) {
+            const p = toCardLocal(dragCard, e.clientX, e.clientY);
+            for (let i = 0; i < 4; i++) stampOn(ink, p.x, p.y, 0.55, 2.4);
+          }
+          return;
+        }
+      }
+      drawing = true;
+      prevHit = null;
+      inkGap = 0;
+      initSound();
+      stamp(wrapP(e.clientX + cur), e.clientY, 0.3, 1.4);
+      dirty = true;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (dragCard) {
+        const dx = e.clientX - last.x;
+        const dy = e.clientY - last.y;
+        // the pencil tip is dug into the card: it follows 1:1, never separates
+        dragCard.px += dx;
+        dragCard.py += dy;
+        dragCard.vx = dx; // remembered as a throw on release
+        dragCard.vy = dy;
+        strokeDist += Math.hypot(dx, dy);
+        last = { x: e.clientX, y: e.clientY, t: performance.now() };
+        return;
+      }
+      if (!drawing) return;
+      const now = performance.now();
+      const dx = e.clientX - last.x;
+      const dy = e.clientY - last.y;
+      const dist = Math.hypot(dx, dy);
+      const speed = dist / Math.max(1, now - last.t); // px per ms
+      // slow strokes press harder: darker & slightly wider
+      const alpha = Math.min(0.4, 0.32 / (0.6 + speed));
+      const size = 1.1 + Math.min(1.2, speed * 0.35);
+      // cards are loose objects on the paper: a stroke passing through one
+      // shoves it a little (and twists it when hit off-center) — no scrolling
+      const hitEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cv-card');
+      const hit = hitEl ? (model.find((m) => m.el === hitEl) ?? null) : null;
+      if (hit) {
+        // impulse: the faster the stroke, the harder the flick
+        hit.vx += dx * PUSH_K;
+        hit.vy += dy * PUSH_K;
+        const r = hitEl!.getBoundingClientRect();
+        // torque: hits away from the center of mass spin the card
+        hit.vr += (dx * (e.clientY - (r.top + r.height / 2)) - dy * (e.clientX - (r.left + r.width / 2))) * TORQUE_K;
+        if (prevHit !== hit) {
+          // pencil tip bumps the card edge: extra kick + the line breaks briefly
+          hit.vx += dx * PUSH_K * 6;
+          hit.vy += dy * PUSH_K * 6;
+          inkGap = 10 + Math.random() * 8;
+        }
+      } else if (prevHit) {
+        // pencil slides off the card edge and drops back to the paper:
+        // the line breaks again, a touch shorter than the bump going in
+        inkGap = 7 + Math.random() * 6;
+      }
+      prevHit = hit;
+
+      const steps = Math.max(1, Math.floor(dist / 1.5));
+      const stepLen = dist / steps;
+      const ink = hit ? cardInk.get(hit.el) : null;
+      for (let i = 1; i <= steps; i++) {
+        if (inkGap > 0) {
+          inkGap -= stepLen; // the bump lifted the pencil for a moment
+          continue;
+        }
+        const sx = last.x + (dx * i) / steps;
+        const sy = last.y + (dy * i) / steps;
+        if (hit && ink) {
+          // pencil is on the card: mark the card itself, in its own frame
+          const p = toCardLocal(hit, sx, sy);
+          stampOn(ink, p.x, p.y, alpha, size);
+        } else {
+          stamp(wrapP(sx + cur), sy, alpha, size);
+        }
+      }
+      soundAt(speed);
+      strokeDist += dist;
+      dirty = true;
+      last = { x: e.clientX, y: e.clientY, t: now };
+    });
+
+    // belt & suspenders: no native selection or link-drag ghosts while stroking
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+    document.addEventListener('dragstart', (e) => e.preventDefault());
+
+    const endStroke = () => {
+      drawing = false;
+      dragCard = null; // its last velocity carries on as a throw
+      soundOff();
+    };
+    window.addEventListener('pointerup', endStroke);
+    window.addEventListener('pointercancel', endStroke);
+    window.addEventListener('blur', endStroke);
+
+    // -- archive on leave: fresh paper every visit, past drawings kept in localStorage
+    const ARCHIVE_KEY = 'pencil-archive';
+    const saveToArchive = () => {
+      if (!dirty) return;
+      try {
+        const out = document.createElement('canvas');
+        const scale = Math.min(1, 1600 / paper.width);
+        out.width = Math.round(paper.width * scale);
+        out.height = Math.round(paper.height * scale);
+        const octx = out.getContext('2d')!;
+        octx.fillStyle = '#fff';
+        octx.fillRect(0, 0, out.width, out.height);
+        octx.drawImage(paper, 0, 0, out.width, out.height);
+        const arr = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]');
+        arr.push({ t: Date.now(), img: out.toDataURL('image/jpeg', 0.6) });
+        while (arr.length > 4) arr.shift();
+        localStorage.setItem(ARCHIVE_KEY, JSON.stringify(arr));
+        dirty = false;
+      } catch {
+        /* quota or serialization failure — drawing stays ephemeral */
+      }
+    };
+    window.addEventListener('pagehide', saveToArchive);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') saveToArchive();
+    });
+
+    // blit the looping paper at the conveyor's current offset
+    const renderInk = () => {
+      vctx.clearRect(0, 0, pencil.width, pencil.height);
+      const off = wrapP(cur) * dpr;
+      for (let x = -off; x < pencil.width; x += PW * dpr) {
+        vctx.drawImage(paper, x, 0);
+      }
+    };
 
     const frame = () => {
       cur += (target - cur) * 0.12; // light lerp smoothing
@@ -298,12 +618,25 @@ for (let i = 0; i < max; i++) {
       spacing = Math.max(MIN_SPACING, (vw + CARDW) / N);
       W = N * spacing;
       for (const c of model) {
-        const x = wrap(c.i * spacing - cur) - CARDW; // exits left, re-enters right
-        const y = c.yPct * vh;
+        // physical slide: velocity moves the card, friction bleeds it off,
+        // and the card STAYS where it stops — nothing pulls it back
+        if (c !== dragCard) {
+          c.px += c.vx;
+          c.py += c.vy;
+        }
+        c.pr = Math.max(-14, Math.min(14, c.pr + c.vr));
+        c.vx *= FRICTION;
+        c.vy *= FRICTION;
+        c.vr *= FRICTION;
+        const x = wrap(c.i * spacing - cur) - CARDW + c.px; // exits left, re-enters right
+        const y = c.yPct * vh + c.py;
+        const tilt = c.tilt + c.pr;
+        const scale = c.scale;
         c.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(
           1
-        )}px) rotate(${c.tilt}deg) scale(${c.scale})`;
+        )}px) rotate(${tilt.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
       }
+      renderInk();
       requestAnimationFrame(frame);
     };
     frame();
