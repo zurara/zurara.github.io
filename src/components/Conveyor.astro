@@ -54,6 +54,32 @@ for (let i = 0; i < max; i++) {
   <div class="cv-chrome cv-br" id="cv-hint">scroll → &nbsp;·&nbsp; draw ✎</div>
   <canvas id="cv-pencil" aria-hidden="true"></canvas>
 
+  <!-- page-peel: a curling paper corner. Hidden until a corner is hovered. -->
+  <div id="cv-peel" data-corner="tl" aria-hidden="true">
+    <div class="cv-peel-hole"></div>
+    <div class="cv-peel-fold"></div>
+  </div>
+
+  <!-- the letter — the first and only explicit UI, shown after the rip commits -->
+  <div
+    id="cv-letter"
+    class="cv-letter"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-label="Send this letter"
+  >
+    <div class="cv-letter-card">
+      <h2>Would you like to<br />send this letter?</h2>
+      <input class="cv-field" id="cv-lt-name" type="text" placeholder="from — optional" autocomplete="name" />
+      <input class="cv-field" id="cv-lt-reply" type="text" placeholder="a way to reply — optional" autocomplete="email" />
+      <div class="cv-letter-actions">
+        <span class="cv-send" id="cv-lt-send" role="button" tabindex="0">Send</span>
+        <span class="cv-back" id="cv-lt-back" role="button" tabindex="0">put it back</span>
+      </div>
+    </div>
+  </div>
+
   <section class="conveyor" id="cards" aria-label="Projects and writing">
     <div class="cv-track" id="cv-track">
       {
@@ -243,6 +269,158 @@ for (let i = 0; i < max; i++) {
       bottom: 18px;
     }
   }
+
+  /* ---- page-peel / rip ---------------------------------------------------
+     A folded-back paper corner. The box is a square sized in JS to the peel
+     amount; its two children clip to triangles — one is the shadowed gap
+     under the lifted corner, the other is the folded-over paper on top.
+     pointer-events:none — all hit-testing is done in JS so drawing near a
+     corner still works. Orientation per corner is a simple mirror. */
+  #cv-peel {
+    position: fixed;
+    z-index: 6;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    display: none;
+    will-change: width, height;
+  }
+  #cv-peel.on {
+    display: block;
+  }
+  .cv-peel-hole,
+  .cv-peel-fold {
+    position: absolute;
+    inset: 0;
+  }
+  /* the gap the lifted corner leaves — a soft shadow on the pad beneath */
+  .cv-peel-hole {
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    background:
+      radial-gradient(
+        130% 130% at 0 0,
+        rgba(10, 10, 10, 0.24),
+        rgba(10, 10, 10, 0.06) 52%,
+        rgba(10, 10, 10, 0) 74%
+      ),
+      #f1f0ec;
+  }
+  /* the folded-back sheet lying over the page — its blank underside */
+  .cv-peel-fold {
+    clip-path: polygon(100% 0, 0 100%, 100% 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(10, 10, 10, 0.18) 0,
+      rgba(10, 10, 10, 0.03) 5%,
+      #ffffff 13%,
+      #f7f6f3 58%,
+      #e8e7e2 100%
+    );
+    filter: drop-shadow(-7px 7px 9px rgba(10, 10, 10, 0.26));
+  }
+  #cv-peel[data-corner='tl'] {
+    top: 0;
+    left: 0;
+  }
+  #cv-peel[data-corner='tr'] {
+    top: 0;
+    right: 0;
+    transform: scaleX(-1);
+  }
+  #cv-peel[data-corner='bl'] {
+    bottom: 0;
+    left: 0;
+    transform: scaleY(-1);
+  }
+  #cv-peel[data-corner='br'] {
+    bottom: 0;
+    right: 0;
+    transform: scale(-1, -1);
+  }
+
+  /* ---- the letter (first UI ever shown) ---- */
+  .cv-letter {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+  .cv-letter[hidden] {
+    display: none;
+  }
+  .cv-letter.show {
+    opacity: 1;
+  }
+  .cv-letter-card {
+    width: min(420px, 86vw);
+    text-align: center;
+    transform: translateY(10px);
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .cv-letter.show .cv-letter-card {
+    transform: none;
+  }
+  .cv-letter h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1.16;
+    margin: 0 0 24px;
+  }
+  .cv-field {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid rgba(10, 10, 10, 0.35);
+    background: transparent;
+    font: inherit;
+    font-size: 15px;
+    padding: 8px 2px;
+    margin: 0 0 14px;
+    color: #0a0a0a;
+    text-align: center;
+  }
+  .cv-field:focus {
+    outline: none;
+    border-bottom-color: #0a0a0a;
+  }
+  .cv-field::placeholder {
+    color: rgba(10, 10, 10, 0.4);
+  }
+  .cv-letter-actions {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+  .cv-send {
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    border-bottom: 2px solid #0a0a0a;
+    padding-bottom: 2px;
+    cursor: pointer;
+  }
+  .cv-back {
+    font-weight: 400;
+    font-size: 13px;
+    color: rgba(10, 10, 10, 0.55);
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cv-letter,
+    .cv-letter-card {
+      transition: none;
+    }
+  }
 </style>
 
 <script>
@@ -288,6 +466,7 @@ for (let i = 0; i < max; i++) {
     let hideHint = false;
 
     const nudge = (d: number) => {
+      if (frozen || peeling) return;
       target += d;
       if (!hideHint && hint) {
         hint.style.opacity = '0';
@@ -323,7 +502,7 @@ for (let i = 0; i < max; i++) {
     window.addEventListener(
       'touchmove',
       (e) => {
-        if (lastX === null) return;
+        if (lastX === null || frozen || peeling) return;
         const tx = e.touches[0].clientX;
         moved += Math.abs(tx - lastX);
         nudge((lastX - tx) * 1.6);
@@ -465,6 +644,8 @@ for (let i = 0; i < max; i++) {
 
     window.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'touch' || e.button !== 0) return;
+      if (frozen) return;
+      if (ripTryGrab(e)) return; // pressing a curled corner peels, it doesn't draw
       strokeDist = 0;
       last = { x: e.clientX, y: e.clientY, t: performance.now() };
       const hitEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cv-card');
@@ -491,6 +672,10 @@ for (let i = 0; i < max; i++) {
     });
 
     window.addEventListener('pointermove', (e) => {
+      if (peeling) {
+        ripMove(e);
+        return;
+      }
       if (dragCard) {
         const dx = e.clientX - last.x;
         const dy = e.clientY - last.y;
@@ -600,6 +785,298 @@ for (let i = 0; i < max; i++) {
       if (document.visibilityState === 'hidden') saveToArchive();
     });
 
+    // ---------------------------------------------------------------
+    // page peel / rip — hover a corner and the paper curls up as a hint;
+    // grab the curled corner and drag inward to peel the sheet off. Past
+    // ~40% it tears free, the conveyor freezes, and the letter UI appears —
+    // the only explicit UI on the site, and only after the rip commits.
+    // ---------------------------------------------------------------
+    const peelEl = document.getElementById('cv-peel') as HTMLElement;
+    const letterEl = document.getElementById('cv-letter') as HTMLElement;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const letterTitle = letterEl.querySelector('h2')!.innerHTML;
+
+    const CORNERS = ['tl', 'tr', 'bl', 'br'] as const;
+    type Corner = (typeof CORNERS)[number];
+    const cornerPt = (c: Corner) => ({
+      x: c === 'tl' || c === 'bl' ? 0 : window.innerWidth,
+      y: c === 'tl' || c === 'tr' ? 0 : window.innerHeight,
+    });
+    const nearestCorner = (x: number, y: number) => {
+      let best: Corner = 'tl';
+      let bd = Infinity;
+      for (const c of CORNERS) {
+        const p = cornerPt(c);
+        const d = Math.hypot(x - p.x, y - p.y);
+        if (d < bd) {
+          bd = d;
+          best = c;
+        }
+      }
+      return { corner: best, dist: bd };
+    };
+
+    const HOVER_R = 150; // start hinting within this radius of a corner
+    const ARM_R = 54; // inner zone: dwell here to lock the dog-ear open
+    const ARM_MS = 200;
+    const HINT_MAX = 0.05; // curl for a bare hover
+    const COMMIT = 0.4; // peel past this on release = the page tears free
+
+    let frozen = false; // conveyor + drawing halt while the letter shows
+    let peeling = false; // actively dragging a curled corner inward
+    let committing = false; // running the tear-free sweep into the letter
+    let peel = 0; // rendered peel amount, 0..~1.35
+    let activeCorner: Corner = 'tl';
+    let peelTarget = 0;
+    let armed = false; // dog-ear locked open, ready to grab
+    let armTimer = 0;
+
+    const minDim = () => Math.min(window.innerWidth, window.innerHeight);
+    const peelSize = (p: number) => p * minDim() * 1.25;
+
+    const setCorner = (c: Corner) => {
+      activeCorner = c;
+      peelEl.setAttribute('data-corner', c);
+    };
+
+    const applyPeel = () => {
+      if (peel <= 0.001 && !committing) {
+        peelEl.classList.remove('on');
+        return;
+      }
+      peelEl.classList.add('on');
+      const s = peelSize(peel);
+      peelEl.style.width = s + 'px';
+      peelEl.style.height = s + 'px';
+    };
+
+    // lerps the rendered peel toward its target every frame (called from frame())
+    const updatePeel = () => {
+      const k = peeling || committing ? 0.35 : 0.2;
+      peel += (peelTarget - peel) * k;
+      applyPeel();
+    };
+
+    const disarm = () => {
+      armed = false;
+      if (armTimer) {
+        clearTimeout(armTimer);
+        armTimer = 0;
+      }
+      document.body.style.cursor = '';
+      if (!peeling) peelTarget = 0;
+    };
+
+    // hover: curl the nearest corner; dwell in the inner zone to arm the grab
+    const onHover = (e: PointerEvent) => {
+      if (frozen || peeling || committing || drawing || dragCard || e.buttons) return;
+      const { corner, dist } = nearestCorner(e.clientX, e.clientY);
+      if (dist > HOVER_R) {
+        disarm();
+        return;
+      }
+      if (corner !== activeCorner) {
+        disarm();
+        setCorner(corner);
+      }
+      if (dist <= ARM_R) {
+        if (!armed && !armTimer) {
+          armTimer = window.setTimeout(() => {
+            armed = true;
+            armTimer = 0;
+            peelTarget = HINT_MAX * 1.6;
+            document.body.style.cursor = 'grab';
+          }, ARM_MS);
+        }
+      } else if (armTimer) {
+        clearTimeout(armTimer);
+        armTimer = 0;
+      }
+      if (!armed) peelTarget = HINT_MAX * (1 - dist / HOVER_R);
+    };
+
+    // pointerdown handler asks this first; returns true if it started a peel
+    const ripTryGrab = (e: PointerEvent) => {
+      if (committing) return false;
+      const { corner, dist } = nearestCorner(e.clientX, e.clientY);
+      if (armed) {
+        if (dist > HOVER_R) return false;
+      } else if (dist > ARM_R) {
+        return false;
+      }
+      setCorner(corner);
+      peeling = true;
+      armed = false;
+      if (armTimer) {
+        clearTimeout(armTimer);
+        armTimer = 0;
+      }
+      document.body.style.cursor = 'grabbing';
+      try {
+        (e.target as Element).setPointerCapture?.(e.pointerId);
+      } catch {
+        /* capture unsupported — window listeners still track the drag */
+      }
+      return true;
+    };
+
+    // inward drag distance from the corner drives how far the page peels
+    const ripMove = (e: { clientX: number; clientY: number }) => {
+      const p = cornerPt(activeCorner);
+      const d = Math.hypot(e.clientX - p.x, e.clientY - p.y);
+      peelTarget = Math.max(0, Math.min(1, d / (minDim() * 0.6)));
+    };
+
+    const commitRip = () => {
+      committing = true;
+      peeling = false;
+      document.body.style.cursor = '';
+      peelTarget = 1.35; // sweep the fold across the sheet
+      window.setTimeout(
+        () => {
+          frozen = true;
+          letterEl.hidden = false;
+          requestAnimationFrame(() => letterEl.classList.add('show'));
+        },
+        reduce ? 0 : 420
+      );
+    };
+
+    const settleBack = () => {
+      peeling = false;
+      peelTarget = 0;
+      document.body.style.cursor = '';
+    };
+
+    const ripUp = () => {
+      if (!peeling) return;
+      if (peel >= COMMIT) commitRip();
+      else settleBack();
+    };
+
+    // put the page back (either "put it back" or after a send)
+    const closeLetter = () => {
+      letterEl.classList.remove('show');
+      peelTarget = 0;
+      window.setTimeout(
+        () => {
+          letterEl.hidden = true;
+          committing = false;
+          frozen = false;
+          peeling = false;
+          armed = false;
+          peelTarget = 0;
+          peel = 0;
+          applyPeel();
+          // restore the form for a possible next rip this session
+          const h2 = letterEl.querySelector('h2');
+          if (h2) h2.innerHTML = letterTitle;
+          letterEl
+            .querySelectorAll<HTMLElement>('.cv-field, .cv-letter-actions')
+            .forEach((n) => (n.style.display = ''));
+        },
+        reduce ? 0 : 460
+      );
+    };
+
+    // the drawing on this ripped sheet, kept locally (no backend on Pages)
+    const captureLetter = () => {
+      try {
+        const out = document.createElement('canvas');
+        const scale = Math.min(1, 1600 / paper.width);
+        out.width = Math.round(paper.width * scale);
+        out.height = Math.round(paper.height * scale);
+        const o = out.getContext('2d')!;
+        o.fillStyle = '#fff';
+        o.fillRect(0, 0, out.width, out.height);
+        o.drawImage(paper, 0, 0, out.width, out.height);
+        const name = (document.getElementById('cv-lt-name') as HTMLInputElement)?.value || '';
+        const reply = (document.getElementById('cv-lt-reply') as HTMLInputElement)?.value || '';
+        const box = JSON.parse(localStorage.getItem('pencil-letters') || '[]');
+        box.push({ t: Date.now(), name, reply, img: out.toDataURL('image/jpeg', 0.7) });
+        while (box.length > 8) box.shift();
+        localStorage.setItem('pencil-letters', JSON.stringify(box));
+      } catch {
+        /* storage full — the letter still counts as sent */
+      }
+    };
+
+    const doSend = () => {
+      captureLetter();
+      const h2 = letterEl.querySelector('h2');
+      if (h2) h2.textContent = 'Sent. It’ll find me.';
+      letterEl
+        .querySelectorAll<HTMLElement>('.cv-field, .cv-letter-actions')
+        .forEach((n) => (n.style.display = 'none'));
+      window.setTimeout(closeLetter, 1400);
+    };
+
+    document.getElementById('cv-lt-send')?.addEventListener('click', doSend);
+    document.getElementById('cv-lt-back')?.addEventListener('click', closeLetter);
+    document.getElementById('cv-lt-send')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        doSend();
+      }
+    });
+    document.getElementById('cv-lt-back')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        closeLetter();
+      }
+    });
+
+    // hover + peel release (drawing pointerdown/move already route into the rip)
+    window.addEventListener('pointermove', onHover, { passive: true });
+    window.addEventListener('pointerup', ripUp);
+    window.addEventListener('pointercancel', ripUp);
+
+    // touch fallback: no hover, so a drag starting in a corner peels directly
+    let touchPeel = false;
+    window.addEventListener(
+      'touchstart',
+      (e) => {
+        if (frozen || committing) return;
+        const t = e.touches[0];
+        const { corner, dist } = nearestCorner(t.clientX, t.clientY);
+        if (dist <= HOVER_R * 0.55) {
+          setCorner(corner);
+          peeling = true;
+          touchPeel = true;
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!touchPeel) return;
+        ripMove(e.touches[0]);
+      },
+      { passive: true }
+    );
+    window.addEventListener('touchend', () => {
+      if (touchPeel) {
+        touchPeel = false;
+        ripUp();
+      }
+    });
+
+    // ambient breeze: every so often, lift a random corner a touch, then settle
+    if (!reduce) {
+      const breeze = () => {
+        if (!frozen && !peeling && !committing && !armed && peel < 0.01) {
+          setCorner(CORNERS[Math.floor(Math.random() * CORNERS.length)]);
+          peelTarget = 0.03;
+          window.setTimeout(() => {
+            if (!peeling && !armed && !committing) peelTarget = 0;
+          }, 700);
+        }
+        window.setTimeout(breeze, 22000 + Math.random() * 16000);
+      };
+      window.setTimeout(breeze, 9000);
+    }
+
     // blit the looping paper at the conveyor's current offset
     const renderInk = () => {
       vctx.clearRect(0, 0, pencil.width, pencil.height);
@@ -610,6 +1087,7 @@ for (let i = 0; i < max; i++) {
     };
 
     const frame = () => {
+      if (!frozen) {
       cur += (target - cur) * 0.12; // light lerp smoothing
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -636,7 +1114,9 @@ for (let i = 0; i < max; i++) {
           1
         )}px) rotate(${tilt.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
       }
+      }
       renderInk();
+      updatePeel();
       requestAnimationFrame(frame);
     };
     frame();
