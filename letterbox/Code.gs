@@ -39,7 +39,7 @@ function doPost(e) {
 
     MailApp.sendEmail(
       TO,
-      '✉ a letter from the site' + (letter.name ? ' — ' + letter.name : ''),
+      'A letter from the site' + (letter.name ? ' - ' + letter.name : ''),
       'from:  ' + name + '\nreply: ' + reply + '\n\nThe drawing is attached.',
       options
     );
