@@ -1008,10 +1008,14 @@ for (let i = 0; i < max; i++) {
       );
     };
 
-    // where sent letters go. Set to a Web3Forms/Formspree/Apps-Script URL to
-    // receive them by email; empty = letters only archive in localStorage.
+    // where sent letters go, in order of preference:
+    //  1. LETTERBOX_URL — Google Apps Script (letterbox/Code.gs): the drawing
+    //     arrives as a real JPEG attachment. Paste the /exec URL after deploying.
+    //  2. Web3Forms fallback — drawing arrives as a data-URL string in the body.
+    //  3. Neither — letters only archive in the visitor's localStorage.
+    const LETTERBOX_URL = '';
     const SEND_URL = 'https://api.web3forms.com/submit';
-    const SEND_KEY = ''; // Web3Forms access key — paste yours to go live
+    const SEND_KEY = '9d1d12c4-7d97-4146-ba7a-978038d8fb39'; // → zurara.design@gmail.com
 
     // flatten the ripped sheet to a JPEG + the two optional fields
     const captureLetter = () => {
@@ -1045,8 +1049,17 @@ for (let i = 0; i < max; i++) {
       } catch {
         /* storage full — the letter still counts as sent */
       }
-      // …and mail it home when a key is configured (fire-and-forget)
-      if (SEND_KEY) {
+      // …and mail it home (fire-and-forget). The letterbox gets plain-text
+      // JSON — a "simple" request, so Apps Script needs no CORS preflight.
+      if (LETTERBOX_URL) {
+        fetch(LETTERBOX_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify(letter),
+        }).catch(() => {
+          /* offline — the local copy survives */
+        });
+      } else if (SEND_KEY) {
         fetch(SEND_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
