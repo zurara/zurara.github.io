@@ -70,12 +70,17 @@ for (let i = 0; i < max; i++) {
     aria-label="Send this letter"
   >
     <div class="cv-letter-card">
+      <div class="cv-lt-rule" aria-hidden="true"></div>
+      <div class="cv-lt-kicker" aria-hidden="true">
+        <span>A letter</span>
+        <span>unsent</span>
+      </div>
       <h2>Would you like to<br />send this letter?</h2>
-      <input class="cv-field" id="cv-lt-name" type="text" placeholder="from — optional" autocomplete="name" />
-      <input class="cv-field" id="cv-lt-reply" type="text" placeholder="a way to reply — optional" autocomplete="email" />
+      <input class="cv-field" id="cv-lt-name" type="text" placeholder="From — optional" autocomplete="name" />
+      <input class="cv-field" id="cv-lt-reply" type="text" placeholder="A way to reply — optional" autocomplete="email" />
       <div class="cv-letter-actions">
         <span class="cv-send" id="cv-lt-send" role="button" tabindex="0">Send</span>
-        <span class="cv-back" id="cv-lt-back" role="button" tabindex="0">put it back</span>
+        <span class="cv-back" id="cv-lt-back" role="button" tabindex="0">Put it back</span>
       </div>
     </div>
   </div>
@@ -293,30 +298,18 @@ for (let i = 0; i < max; i++) {
     position: absolute;
     inset: 0;
   }
-  /* the gap the lifted corner leaves — a soft shadow on the pad beneath */
+  /* the gap the lifted corner leaves — the pad beneath, a clean neutral gray */
   .cv-peel-hole {
     clip-path: polygon(0 0, 100% 0, 0 100%);
     background:
-      radial-gradient(
-        130% 130% at 0 0,
-        rgba(10, 10, 10, 0.24),
-        rgba(10, 10, 10, 0.06) 52%,
-        rgba(10, 10, 10, 0) 74%
-      ),
-      #f1f0ec;
+      linear-gradient(135deg, rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0) 55%),
+      #f5f5f5;
   }
   /* the folded-back sheet lying over the page — its blank underside */
   .cv-peel-fold {
     clip-path: polygon(100% 0, 0 100%, 100% 100%);
-    background: linear-gradient(
-      135deg,
-      rgba(10, 10, 10, 0.18) 0,
-      rgba(10, 10, 10, 0.03) 5%,
-      #ffffff 13%,
-      #f7f6f3 58%,
-      #e8e7e2 100%
-    );
-    filter: drop-shadow(-7px 7px 9px rgba(10, 10, 10, 0.26));
+    background: linear-gradient(135deg, #ffffff 12%, #fafafa 60%, #f0f0f0 100%);
+    filter: drop-shadow(-4px 4px 10px rgba(0, 0, 0, 0.1));
   }
   #cv-peel[data-corner='tl'] {
     top: 0;
@@ -338,16 +331,16 @@ for (let i = 0; i < max; i++) {
     transform: scale(-1, -1);
   }
 
-  /* ---- the letter (first UI ever shown) ---- */
+  /* ---- the letter (first UI ever shown) — flush-left Swiss grid ---- */
   .cv-letter {
     position: fixed;
     inset: 0;
     z-index: 20;
     display: grid;
     place-items: center;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(10px) saturate(110%);
+    -webkit-backdrop-filter: blur(10px) saturate(110%);
     opacity: 0;
     transition: opacity 0.45s ease;
   }
@@ -358,61 +351,95 @@ for (let i = 0; i < max; i++) {
     opacity: 1;
   }
   .cv-letter-card {
-    width: min(420px, 86vw);
-    text-align: center;
-    transform: translateY(10px);
-    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+    width: min(480px, 86vw);
+    text-align: left;
+    transform: translateY(14px);
+    transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .cv-letter.show .cv-letter-card {
     transform: none;
   }
+  /* the Swiss rule: one decisive black bar anchoring the block */
+  .cv-lt-rule {
+    height: 3px;
+    background: #0a0a0a;
+    margin-bottom: 14px;
+  }
+  .cv-lt-kicker {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #0a0a0a;
+    margin-bottom: 40px;
+  }
+  .cv-lt-kicker span:last-child {
+    color: rgba(10, 10, 10, 0.38);
+  }
   .cv-letter h2 {
     font-family: 'Fraunces', Georgia, serif;
     font-weight: 400;
-    font-size: 28px;
-    line-height: 1.16;
-    margin: 0 0 24px;
+    font-size: clamp(30px, 5vw, 40px);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin: 0 0 44px;
   }
   .cv-field {
     display: block;
     width: 100%;
     border: 0;
-    border-bottom: 1px solid rgba(10, 10, 10, 0.35);
+    border-bottom: 1px solid rgba(10, 10, 10, 0.2);
     background: transparent;
     font: inherit;
     font-size: 15px;
-    padding: 8px 2px;
-    margin: 0 0 14px;
+    padding: 10px 0;
+    margin: 0 0 18px;
     color: #0a0a0a;
-    text-align: center;
+    text-align: left;
+    border-radius: 0;
+    transition: border-color 0.2s ease;
   }
   .cv-field:focus {
     outline: none;
     border-bottom-color: #0a0a0a;
   }
   .cv-field::placeholder {
-    color: rgba(10, 10, 10, 0.4);
+    color: rgba(10, 10, 10, 0.34);
   }
   .cv-letter-actions {
-    margin-top: 22px;
+    margin-top: 40px;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
     align-items: center;
+    justify-content: space-between;
   }
   .cv-send {
+    display: inline-block;
+    background: #0a0a0a;
+    color: #ffffff;
+    font-size: 12px;
     font-weight: 600;
-    font-size: 16px;
-    letter-spacing: 0.02em;
-    border-bottom: 2px solid #0a0a0a;
-    padding-bottom: 2px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 14px 44px;
     cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+  .cv-send:hover {
+    opacity: 0.82;
   }
   .cv-back {
-    font-weight: 400;
-    font-size: 13px;
-    color: rgba(10, 10, 10, 0.55);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: rgba(10, 10, 10, 0.45);
+    border-bottom: 1px solid rgba(10, 10, 10, 0.25);
+    padding-bottom: 1px;
     cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .cv-back:hover {
+    color: #0a0a0a;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -971,6 +998,8 @@ for (let i = 0; i < max; i++) {
           // restore the form for a possible next rip this session
           const h2 = letterEl.querySelector('h2');
           if (h2) h2.innerHTML = letterTitle;
+          const kicker = letterEl.querySelector('.cv-lt-kicker span:last-child');
+          if (kicker) kicker.textContent = 'unsent';
           letterEl
             .querySelectorAll<HTMLElement>('.cv-field, .cv-letter-actions')
             .forEach((n) => (n.style.display = ''));
@@ -979,32 +1008,63 @@ for (let i = 0; i < max; i++) {
       );
     };
 
-    // the drawing on this ripped sheet, kept locally (no backend on Pages)
+    // where sent letters go. Set to a Web3Forms/Formspree/Apps-Script URL to
+    // receive them by email; empty = letters only archive in localStorage.
+    const SEND_URL = 'https://api.web3forms.com/submit';
+    const SEND_KEY = ''; // Web3Forms access key — paste yours to go live
+
+    // flatten the ripped sheet to a JPEG + the two optional fields
     const captureLetter = () => {
+      const name = (document.getElementById('cv-lt-name') as HTMLInputElement)?.value || '';
+      const reply = (document.getElementById('cv-lt-reply') as HTMLInputElement)?.value || '';
+      let img = '';
       try {
         const out = document.createElement('canvas');
-        const scale = Math.min(1, 1600 / paper.width);
+        const scale = Math.min(1, 1200 / paper.width);
         out.width = Math.round(paper.width * scale);
         out.height = Math.round(paper.height * scale);
         const o = out.getContext('2d')!;
         o.fillStyle = '#fff';
         o.fillRect(0, 0, out.width, out.height);
         o.drawImage(paper, 0, 0, out.width, out.height);
-        const name = (document.getElementById('cv-lt-name') as HTMLInputElement)?.value || '';
-        const reply = (document.getElementById('cv-lt-reply') as HTMLInputElement)?.value || '';
+        img = out.toDataURL('image/jpeg', 0.6);
+      } catch {
+        /* canvas failure — send the words alone */
+      }
+      return { t: Date.now(), name, reply, img };
+    };
+
+    const doSend = () => {
+      const letter = captureLetter();
+      // always keep a local copy…
+      try {
         const box = JSON.parse(localStorage.getItem('pencil-letters') || '[]');
-        box.push({ t: Date.now(), name, reply, img: out.toDataURL('image/jpeg', 0.7) });
+        box.push(letter);
         while (box.length > 8) box.shift();
         localStorage.setItem('pencil-letters', JSON.stringify(box));
       } catch {
         /* storage full — the letter still counts as sent */
       }
-    };
-
-    const doSend = () => {
-      captureLetter();
+      // …and mail it home when a key is configured (fire-and-forget)
+      if (SEND_KEY) {
+        fetch(SEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_key: SEND_KEY,
+            subject: `✉ a letter from the site${letter.name ? ` — ${letter.name}` : ''}`,
+            from_name: letter.name || 'anonymous visitor',
+            reply_to: letter.reply || undefined,
+            message: `from: ${letter.name || '—'}\nreply: ${letter.reply || '—'}\n\ndrawing (paste into a browser address bar or an <img src>):\n${letter.img}`,
+          }),
+        }).catch(() => {
+          /* offline — the local copy survives */
+        });
+      }
       const h2 = letterEl.querySelector('h2');
       if (h2) h2.textContent = 'Sent. It’ll find me.';
+      const kicker = letterEl.querySelector('.cv-lt-kicker span:last-child');
+      if (kicker) kicker.textContent = 'sent';
       letterEl
         .querySelectorAll<HTMLElement>('.cv-field, .cv-letter-actions')
         .forEach((n) => (n.style.display = 'none'));
