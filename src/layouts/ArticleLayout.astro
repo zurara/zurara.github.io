@@ -290,6 +290,48 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         letter-spacing: 0.06em;
       }
 
+      /* ---- highlighter: drag across the text to mark it -----------------
+         The one splash of colour on the whole site. Marks are painted on a
+         fixed canvas overlay (multiply-blended so text stays crisp under
+         the ink); dragging is handled in the script below. */
+      .prose {
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        cursor:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath d='M3 23l2.2-6.2L16.5 5.5a2.6 2.6 0 0 1 3.7 0l.3.3a2.6 2.6 0 0 1 0 3.7L9.2 20.8 3 23z' fill='%23f7ec2e' stroke='%230a0a0a' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M5.2 16.8l4 4' stroke='%230a0a0a' stroke-width='1.2'/%3E%3C/svg%3E")
+            3 22,
+          text;
+      }
+      .prose a {
+        cursor: inherit;
+      }
+      #hl-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 5;
+        mix-blend-mode: multiply;
+      }
+      #hl-hint {
+        position: fixed;
+        right: 28px;
+        bottom: 24px;
+        z-index: 10;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        opacity: 0.45;
+      }
+      @media (max-width: 640px) {
+        #hl-hint {
+          right: 18px;
+          bottom: 18px;
+          font-size: 11px;
+        }
+      }
+
       @media (max-width: 640px) {
         body {
           font-size: 17px;
@@ -336,5 +378,197 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       <a class="back-link" href="/">← Index</a>
     </div>
     <slot />
+
+    <script>
+      // highlighter — drag across article text to mark it, like a real
+      // fluorescent marker. Marks live as DOM Ranges and are repainted from
+      // their current client rects, so they follow the text through scrolls
+      // and resizes. Fresh page every visit — nothing is stored.
+      const prose = document.querySelector<HTMLElement>('.prose');
+      if (prose) {
+        const canvas = document.createElement('canvas');
+        canvas.id = 'hl-canvas';
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d')!;
+        const coarse = window.matchMedia('(pointer: coarse)').matches;
+
+        const hint = document.createElement('div');
+        hint.id = 'hl-hint';
+        hint.textContent = coarse ? 'press & hold to highlight' : 'highlight ✎';
+        document.body.appendChild(hint);
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        // seeded rng: a stroke's wobble must survive repaints unchanged
+        const mulberry = (a: number) => () => {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+
+        type Caret = { node: Node; offset: number };
+        type Stroke = { a: Caret; range: Range | null; seed: number };
+        const strokes: Stroke[] = [];
+        let active: Stroke | null = null;
+
+        const caretAt = (x: number, y: number): Caret | null => {
+          const doc = document as any;
+          if (doc.caretPositionFromPoint) {
+            const p = doc.caretPositionFromPoint(x, y);
+            return p ? { node: p.offsetNode, offset: p.offset } : null;
+          }
+          if (doc.caretRangeFromPoint) {
+            const r = doc.caretRangeFromPoint(x, y);
+            return r ? { node: r.startContainer, offset: r.startOffset } : null;
+          }
+          return null;
+        };
+        const inProse = (n: Node | null) =>
+          !!n && prose.contains(n.nodeType === 3 ? n.parentNode : (n as Element));
+
+        const buildRange = (a: Caret, b: Caret) => {
+          const r = document.createRange();
+          try {
+            r.setStart(a.node, a.offset);
+            r.setEnd(b.node, b.offset);
+            if (r.collapsed) {
+              r.setStart(b.node, b.offset);
+              r.setEnd(a.node, a.offset);
+            }
+          } catch {
+            return null;
+          }
+          return r.collapsed ? null : r;
+        };
+
+        // merge a range's client rects into per-line bands — seamless ink
+        const bands = (range: Range) => {
+          const out: { top: number; height: number; left: number; right: number }[] = [];
+          for (const r of range.getClientRects()) {
+            if (r.width < 2 || r.height < 6) continue;
+            const prev = out[out.length - 1];
+            if (prev && Math.abs(prev.top - r.top) < 4) {
+              prev.left = Math.min(prev.left, r.left);
+              prev.right = Math.max(prev.right, r.right);
+            } else {
+              out.push({ top: r.top, height: r.height, left: r.left, right: r.right });
+            }
+          }
+          return out;
+        };
+
+        const paintStroke = (s: Stroke) => {
+          const rnd = mulberry(s.seed);
+          for (const b of bands(s.range!)) {
+            // a band a hair narrower than the line, wobbling slightly,
+            // overshooting the ends — two passes of uneven ink
+            const hh = b.height * 0.78;
+            const y = b.top + (b.height - hh) / 2 + (rnd() * 2.6 - 1.3);
+            const x0 = b.left - (3 + rnd() * 5);
+            const x1 = b.right + (3 + rnd() * 5);
+            for (let pass = 0; pass < 2; pass++) {
+              const jitter = (rnd() * 2 - 1) * (pass ? 1.6 : 0.4);
+              const h2 = hh * (pass ? 0.82 : 1);
+              ctx.globalAlpha = pass ? 0.35 : 0.55;
+              ctx.beginPath();
+              if (ctx.roundRect) ctx.roundRect(x0, y + jitter + (hh - h2) / 2, x1 - x0, h2, h2 * 0.45);
+              else ctx.rect(x0, y + jitter + (hh - h2) / 2, x1 - x0, h2);
+              ctx.fill();
+            }
+          }
+        };
+
+        let queued = false;
+        const draw = () => {
+          queued = false;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#f7ec2e';
+          for (const s of strokes) paintStroke(s);
+          if (active?.range) paintStroke(active);
+          ctx.globalAlpha = 1;
+        };
+        const schedule = () => {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(draw);
+        };
+        const size = () => {
+          canvas.width = window.innerWidth * dpr;
+          canvas.height = window.innerHeight * dpr;
+          schedule();
+        };
+
+        const begin = (x: number, y: number) => {
+          const c = caretAt(x, y);
+          if (!c || !inProse(c.node)) return false;
+          active = { a: c, range: null, seed: (Math.random() * 1e9) | 0 };
+          return true;
+        };
+        const extend = (x: number, y: number) => {
+          if (!active) return;
+          const c = caretAt(x, y);
+          if (!c || !inProse(c.node)) return;
+          const r = buildRange(active.a, c);
+          if (r) {
+            active.range = r;
+            schedule();
+          }
+        };
+
+        // desktop: press & drag. touch: long-press first — a plain drag scrolls
+        let lpTimer = 0;
+        let lpFrom: { x: number; y: number } | null = null;
+        let touchInk = false;
+        prose.addEventListener('pointerdown', (e) => {
+          if (e.pointerType === 'touch') {
+            lpFrom = { x: e.clientX, y: e.clientY };
+            lpTimer = window.setTimeout(() => {
+              touchInk = begin(lpFrom!.x, lpFrom!.y);
+              if (touchInk) navigator.vibrate?.(8);
+            }, 380);
+            return;
+          }
+          if (e.button !== 0) return;
+          if (begin(e.clientX, e.clientY)) e.preventDefault();
+        });
+        window.addEventListener('pointermove', (e) => {
+          if (e.pointerType === 'touch') {
+            if (lpFrom && !touchInk && Math.hypot(e.clientX - lpFrom.x, e.clientY - lpFrom.y) > 10) {
+              clearTimeout(lpTimer);
+              lpFrom = null; // it's a scroll, not a highlight
+            }
+            if (!touchInk) return;
+          }
+          extend(e.clientX, e.clientY);
+        });
+        const finish = () => {
+          clearTimeout(lpTimer);
+          lpFrom = null;
+          touchInk = false;
+          if (active) {
+            if (active.range) strokes.push(active);
+            active = null;
+            schedule();
+          }
+        };
+        window.addEventListener('pointerup', finish);
+        window.addEventListener('pointercancel', finish);
+        // while inking on touch, the page must not scroll under the marker
+        document.addEventListener(
+          'touchmove',
+          (e) => {
+            if (touchInk) e.preventDefault();
+          },
+          { passive: false }
+        );
+
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', size);
+        size();
+      }
+    </script>
   </body>
 </html>

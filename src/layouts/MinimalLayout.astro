@@ -30,7 +30,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Urbanist:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Urbanist:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
@@ -53,6 +53,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         /* the home is drawing paper — drags draw, they never select text */
         user-select: none;
         -webkit-user-select: none;
+        /* one finger draws, two fingers scroll — the browser never pans/zooms */
+        touch-action: none;
+        overscroll-behavior: none;
       }
       a {
         color: inherit;

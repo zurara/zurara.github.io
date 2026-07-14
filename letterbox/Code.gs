@@ -11,7 +11,9 @@
  *   4. Authorize when prompted, then copy the Web app URL (ends in /exec)
  *   5. Paste that URL into LETTERBOX_URL in src/components/Conveyor.astro
  *
- * The site POSTs JSON: { t, name, reply, img } where img is a JPEG data URL.
+ * The site POSTs JSON: { t, name, reply, img, paper } — img is a JPEG data
+ * URL of the visitor's viewport (cards + strokes, exactly as they saw it),
+ * paper is the full pencil roll on its own. Both arrive as attachments.
  */
 
 var TO = 'zurara.design@gmail.com';
@@ -27,20 +29,28 @@ function doPost(e) {
       replyTo: letter.reply || undefined,
     };
 
-    if (letter.img && letter.img.indexOf('data:image/') === 0) {
-      var base64 = letter.img.split(',')[1];
-      var blob = Utilities.newBlob(
-        Utilities.base64Decode(base64),
-        'image/jpeg',
-        'letter-' + new Date().toISOString().slice(0, 10) + '.jpg'
-      );
-      options.attachments = [blob];
-    }
+    var stamp = new Date().toISOString().slice(0, 10);
+    var attachments = [];
+    var attach = function (dataUrl, label) {
+      if (dataUrl && dataUrl.indexOf('data:image/') === 0) {
+        attachments.push(
+          Utilities.newBlob(
+            Utilities.base64Decode(dataUrl.split(',')[1]),
+            'image/jpeg',
+            'letter-' + label + '-' + stamp + '.jpg'
+          )
+        );
+      }
+    };
+    attach(letter.img, 'view'); // the viewport: cards + strokes as the visitor saw them
+    attach(letter.paper, 'strokes'); // the full pencil roll on its own
+    if (attachments.length) options.attachments = attachments;
 
     MailApp.sendEmail(
       TO,
       'A letter from the site' + (letter.name ? ' - ' + letter.name : ''),
-      'from:  ' + name + '\nreply: ' + reply + '\n\nThe drawing is attached.',
+      'from:  ' + name + '\nreply: ' + reply +
+        '\n\nAttached: the page as they saw it (view), and the strokes alone.',
       options
     );
 

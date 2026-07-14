@@ -60,8 +60,11 @@ npm run preview
 
 ## Style system
 
-Strict **black `#0a0a0a` on white `#fff`** across the active pages. No accent
-colors. Media forced to grayscale. Tags = 1px black-border chips. Titles &
+Strict **black `#0a0a0a` on white `#fff`** across the active pages. One
+deliberate exception: the article-page highlighter ink (`#f7ec2e`) — the only
+color on the site, and it only appears when a visitor drags the marker. Media
+forced to grayscale. Handwritten moments (the note under the ripped page) use
+the Caveat font. Tags = 1px black-border chips. Titles &
 headings = Fraunces; body = Urbanist. New pages should use
 `MinimalLayout` / `ArticleLayout` — not the legacy `BaseLayout`.
 

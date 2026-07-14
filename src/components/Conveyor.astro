@@ -54,34 +54,32 @@ for (let i = 0; i < max; i++) {
   <div class="cv-chrome cv-br" id="cv-hint">scroll → &nbsp;·&nbsp; draw ✎</div>
   <canvas id="cv-pencil" aria-hidden="true"></canvas>
 
-  <!-- page-peel: a curling paper corner. Hidden until a corner is hovered. -->
+  <!-- page-peel / rip: a curling paper corner with torn, fibrous edges.
+       Hidden until a corner is hovered. Clip paths are generated in JS. -->
   <div id="cv-peel" data-corner="tl" aria-hidden="true">
     <div class="cv-peel-hole"></div>
+    <div class="cv-peel-fray"></div>
     <div class="cv-peel-fold"></div>
   </div>
 
-  <!-- the letter — the first and only explicit UI, shown after the rip commits -->
+  <!-- under the ripped page: a handwritten note, no UI. Shown after the rip commits. -->
   <div
     id="cv-letter"
     class="cv-letter"
     hidden
     role="dialog"
     aria-modal="true"
-    aria-label="Send this letter"
+    aria-label="Send this note"
   >
-    <div class="cv-letter-card">
-      <div class="cv-lt-rule" aria-hidden="true"></div>
-      <div class="cv-lt-kicker" aria-hidden="true">
-        <span>A letter</span>
-        <span>unsent</span>
+    <div class="cv-letter-sheet">
+      <p class="cv-lt-ask" id="cv-lt-ask">wanna send me this note?</p>
+      <span class="cv-lt-yes" id="cv-lt-yes" role="button" tabindex="0">yes — send it →</span>
+      <div class="cv-lt-form" id="cv-lt-form" hidden>
+        <input class="cv-lt-field" id="cv-lt-name" type="text" placeholder="your name" autocomplete="name" />
+        <input class="cv-lt-field" id="cv-lt-reply" type="text" placeholder="somewhere i can reply" autocomplete="email" />
+        <span class="cv-lt-send" id="cv-lt-send" role="button" tabindex="0">send it</span>
       </div>
-      <h2>Would you like to<br />send this letter?</h2>
-      <input class="cv-field" id="cv-lt-name" type="text" placeholder="From — optional" autocomplete="name" />
-      <input class="cv-field" id="cv-lt-reply" type="text" placeholder="A way to reply — optional" autocomplete="email" />
-      <div class="cv-letter-actions">
-        <span class="cv-send" id="cv-lt-send" role="button" tabindex="0">Send</span>
-        <span class="cv-back" id="cv-lt-back" role="button" tabindex="0">Put it back</span>
-      </div>
+      <div><span class="cv-lt-back" id="cv-lt-back" role="button" tabindex="0">put it back</span></div>
     </div>
   </div>
 
@@ -277,10 +275,12 @@ for (let i = 0; i < max; i++) {
 
   /* ---- page-peel / rip ---------------------------------------------------
      A folded-back paper corner. The box is a square sized in JS to the peel
-     amount; its two children clip to triangles — one is the shadowed gap
-     under the lifted corner, the other is the folded-over paper on top.
-     pointer-events:none — all hit-testing is done in JS so drawing near a
-     corner still works. Orientation per corner is a simple mirror. */
+     amount. Three layers: the gap under the lifted corner (pad), the fibre
+     fringe the rip leaves along the sheet's old edges, and the folded-over
+     flap. All clip-path polygons (torn edges, curved crease) are generated
+     in JS, in %, so they scale with the box. pointer-events:none — all
+     hit-testing is done in JS so drawing near a corner still works.
+     Orientation per corner is a simple mirror. */
   #cv-peel {
     position: fixed;
     z-index: 6;
@@ -294,22 +294,32 @@ for (let i = 0; i < max; i++) {
     display: block;
   }
   .cv-peel-hole,
+  .cv-peel-fray,
   .cv-peel-fold {
     position: absolute;
     inset: 0;
   }
-  /* the gap the lifted corner leaves — the pad beneath, a clean neutral gray */
+  /* the gap the lifted corner leaves — the pad beneath, faint paper grain */
   .cv-peel-hole {
     clip-path: polygon(0 0, 100% 0, 0 100%);
     background:
-      linear-gradient(135deg, rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0) 55%),
-      #f5f5f5;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, rgba(0, 0, 0, 0.09), rgba(0, 0, 0, 0) 55%),
+      #f6f6f3;
   }
-  /* the folded-back sheet lying over the page — its blank underside */
+  /* fibre remnants the rip leaves stuck along the screen edges */
+  .cv-peel-fray {
+    clip-path: polygon(0 0, 0 0, 0 0);
+    background: #fdfdfb;
+    filter: drop-shadow(0.5px 1px 1px rgba(0, 0, 0, 0.1));
+  }
+  /* the folded-back flap — blank underside, curl shading + grain.
+     drop-shadow is set per-frame in JS (it deepens as the peel grows) */
   .cv-peel-fold {
     clip-path: polygon(100% 0, 0 100%, 100% 100%);
-    background: linear-gradient(135deg, #ffffff 12%, #fafafa 60%, #f0f0f0 100%);
-    filter: drop-shadow(-4px 4px 10px rgba(0, 0, 0, 0.1));
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, #ffffff 8%, #f7f7f4 32%, #e9e9e5 47%, #fbfbf9 62%, #f0f0ec 100%);
   }
   #cv-peel[data-corner='tl'] {
     top: 0;
@@ -331,18 +341,22 @@ for (let i = 0; i < max; i++) {
     transform: scale(-1, -1);
   }
 
-  /* ---- the letter (first UI ever shown) — flush-left Swiss grid ---- */
+  /* ---- the note under the page — everything handwritten, nothing UI ----
+     Revealed when the sheet tears free: the pad beneath, with a wobbly
+     pencil question written along the tear's slant (--lt-tilt is set per
+     corner in JS). Letter-by-letter jitter is applied in JS. */
   .cv-letter {
     position: fixed;
     inset: 0;
     z-index: 20;
     display: grid;
     place-items: center;
-    background: rgba(255, 255, 255, 0.86);
-    backdrop-filter: blur(10px) saturate(110%);
-    -webkit-backdrop-filter: blur(10px) saturate(110%);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"),
+      #f6f6f3;
     opacity: 0;
     transition: opacity 0.45s ease;
+    cursor: default;
   }
   .cv-letter[hidden] {
     display: none;
@@ -350,101 +364,89 @@ for (let i = 0; i < max; i++) {
   .cv-letter.show {
     opacity: 1;
   }
-  .cv-letter-card {
-    width: min(480px, 86vw);
-    text-align: left;
-    transform: translateY(14px);
+  .cv-letter-sheet {
+    text-align: center;
+    padding: 0 24px;
+    font-family: 'Caveat', 'Segoe Script', cursive;
+    color: #2b2b2b;
+    transform: rotate(var(--lt-tilt, -10deg)) translateY(18px);
     transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
-  .cv-letter.show .cv-letter-card {
-    transform: none;
+  .cv-letter.show .cv-letter-sheet {
+    transform: rotate(var(--lt-tilt, -10deg));
   }
-  /* the Swiss rule: one decisive black bar anchoring the block */
-  .cv-lt-rule {
-    height: 3px;
-    background: #0a0a0a;
-    margin-bottom: 14px;
-  }
-  .cv-lt-kicker {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
+  .cv-lt-ask {
+    font-size: clamp(40px, 7vw, 66px);
     font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: #0a0a0a;
-    margin-bottom: 40px;
+    line-height: 1.12;
+    margin: 0 0 26px;
   }
-  .cv-lt-kicker span:last-child {
-    color: rgba(10, 10, 10, 0.38);
-  }
-  .cv-letter h2 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-weight: 400;
-    font-size: clamp(30px, 5vw, 40px);
-    line-height: 1.08;
-    letter-spacing: -0.01em;
-    margin: 0 0 44px;
-  }
-  .cv-field {
-    display: block;
-    width: 100%;
-    border: 0;
-    border-bottom: 1px solid rgba(10, 10, 10, 0.2);
-    background: transparent;
-    font: inherit;
-    font-size: 15px;
-    padding: 10px 0;
-    margin: 0 0 18px;
-    color: #0a0a0a;
-    text-align: left;
-    border-radius: 0;
-    transition: border-color 0.2s ease;
-  }
-  .cv-field:focus {
-    outline: none;
-    border-bottom-color: #0a0a0a;
-  }
-  .cv-field::placeholder {
-    color: rgba(10, 10, 10, 0.34);
-  }
-  .cv-letter-actions {
-    margin-top: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .cv-send {
+  /* the "next step" — just more handwriting, underlined by a pencil squiggle */
+  .cv-lt-yes,
+  .cv-lt-back {
     display: inline-block;
-    background: #0a0a0a;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    padding: 14px 44px;
     cursor: pointer;
+    padding: 0 6px 7px;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='6'%3E%3Cpath d='M1 4 Q 12 1.5 23 3.5 T 45 3 T 68 4.2 T 89 3' fill='none' stroke='%232b2b2b' stroke-width='1.3' stroke-linecap='round' opacity='0.7'/%3E%3C/svg%3E")
+      repeat-x left bottom / 90px 6px;
+    transition: transform 0.15s ease;
+  }
+  .cv-lt-yes {
+    font-size: clamp(26px, 3.6vw, 34px);
+  }
+  .cv-lt-yes:hover {
+    transform: rotate(-1.5deg) scale(1.04);
+  }
+  .cv-lt-field {
+    display: block;
+    width: min(340px, 74vw);
+    margin: 14px auto 0;
+    border: 0;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='6'%3E%3Cpath d='M1 4 Q 12 1.5 23 3.5 T 45 3 T 68 4.2 T 89 3' fill='none' stroke='%232b2b2b' stroke-width='1.3' stroke-linecap='round' opacity='0.45'/%3E%3C/svg%3E")
+      repeat-x left bottom / 90px 6px;
+    font: inherit;
+    font-size: clamp(24px, 3vw, 30px);
+    text-align: center;
+    color: #2b2b2b;
+    padding: 4px 0 8px;
+    border-radius: 0;
+  }
+  .cv-lt-field:focus {
+    outline: none;
+  }
+  .cv-lt-field::placeholder {
+    color: rgba(43, 43, 43, 0.35);
+  }
+  /* "send it" gets a lopsided hand-drawn circle instead of a button */
+  .cv-lt-send {
+    display: inline-block;
+    margin-top: 26px;
+    font-size: clamp(26px, 3.4vw, 32px);
+    font-weight: 600;
+    padding: 4px 26px 8px;
+    border: 1.6px solid rgba(43, 43, 43, 0.85);
+    border-radius: 49% 51% 46% 54% / 62% 48% 52% 38%;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .cv-lt-send:hover {
+    transform: rotate(1.6deg) scale(1.05);
+  }
+  .cv-lt-back {
+    margin-top: 38px;
+    font-size: 20px;
+    opacity: 0.5;
     transition: opacity 0.2s ease;
   }
-  .cv-send:hover {
-    opacity: 0.82;
-  }
-  .cv-back {
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    color: rgba(10, 10, 10, 0.45);
-    border-bottom: 1px solid rgba(10, 10, 10, 0.25);
-    padding-bottom: 1px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-  .cv-back:hover {
-    color: #0a0a0a;
+  .cv-lt-back:hover {
+    opacity: 0.9;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .cv-letter,
-    .cv-letter-card {
+    .cv-letter-sheet {
       transition: none;
     }
   }
@@ -492,6 +494,9 @@ for (let i = 0; i < max; i++) {
     let cur = 0;
     let hideHint = false;
 
+    if (hint && window.matchMedia('(pointer: coarse)').matches)
+      hint.textContent = 'two fingers scroll · draw ✎';
+
     const nudge = (d: number) => {
       if (frozen || peeling) return;
       target += d;
@@ -515,34 +520,38 @@ for (let i = 0; i < max; i++) {
       else if (e.key === 'ArrowLeft') nudge(-spacing);
     });
 
-    // touch swipe + a guard so a swipe doesn't fire a card's navigation
+    // touch: ONE finger draws (handled by the pointer listeners below, same
+    // as the mouse) — TWO fingers scroll the conveyor, like panning a canvas
     let lastX: number | null = null;
-    let moved = 0;
+    let hadMulti = false;
     window.addEventListener(
       'touchstart',
       (e) => {
-        lastX = e.touches[0].clientX;
-        moved = 0;
+        if (e.touches.length >= 2) {
+          hadMulti = true;
+          endStroke(); // the first finger may have started a stroke — lift it
+          lastX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        }
       },
       { passive: true }
     );
     window.addEventListener(
       'touchmove',
       (e) => {
-        if (lastX === null || frozen || peeling) return;
-        const tx = e.touches[0].clientX;
-        moved += Math.abs(tx - lastX);
-        nudge((lastX - tx) * 1.6);
-        lastX = tx;
+        if (e.touches.length < 2 || lastX === null || frozen || peeling) return;
+        const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        nudge((lastX - mx) * 1.6);
+        lastX = mx;
       },
       { passive: true }
     );
-    window.addEventListener('touchend', () => {
-      lastX = null;
+    window.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) lastX = null;
+      if (e.touches.length === 0) window.setTimeout(() => (hadMulti = false), 80);
     });
     cards.forEach((el) =>
       el.addEventListener('click', (e) => {
-        if (moved > 12 || strokeDist > 8) e.preventDefault(); // swipe or pencil stroke, not a tap
+        if (hadMulti || strokeDist > 8) e.preventDefault(); // a gesture, not a tap
       })
     );
 
@@ -619,7 +628,7 @@ for (let i = 0; i < max; i++) {
     };
 
     // -- pencil sound: looped noise -> bandpass -> gain, driven by stroke speed
-    let sound: { ctx: AudioContext; gain: GainNode; bp: BiquadFilterNode } | null = null;
+    let sound: { ctx: AudioContext; gain: GainNode; bp: BiquadFilterNode; buf: AudioBuffer } | null = null;
     const initSound = () => {
       if (sound) {
         sound.ctx.resume();
@@ -641,7 +650,7 @@ for (let i = 0; i < max; i++) {
         gain.gain.value = 0;
         src.connect(bp).connect(gain).connect(actx.destination);
         src.start();
-        sound = { ctx: actx, gain, bp };
+        sound = { ctx: actx, gain, bp, buf };
       } catch {
         /* no audio — draw silently */
       }
@@ -670,7 +679,8 @@ for (let i = 0; i < max; i++) {
     let inkGap = 0; // px of stroke left un-inked right after bumping into a card
 
     window.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch' || e.button !== 0) return;
+      // a finger draws exactly like the mouse; extra fingers mean "scroll"
+      if (e.pointerType === 'touch' ? !e.isPrimary : e.button !== 0) return;
       if (frozen) return;
       if (ripTryGrab(e)) return; // pressing a curled corner peels, it doesn't draw
       strokeDist = 0;
@@ -819,9 +829,11 @@ for (let i = 0; i < max; i++) {
     // the only explicit UI on the site, and only after the rip commits.
     // ---------------------------------------------------------------
     const peelEl = document.getElementById('cv-peel') as HTMLElement;
+    const holeEl = peelEl.querySelector('.cv-peel-hole') as HTMLElement;
+    const frayEl = peelEl.querySelector('.cv-peel-fray') as HTMLElement;
+    const foldEl = peelEl.querySelector('.cv-peel-fold') as HTMLElement;
     const letterEl = document.getElementById('cv-letter') as HTMLElement;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const letterTitle = letterEl.querySelector('h2')!.innerHTML;
 
     const CORNERS = ['tl', 'tr', 'bl', 'br'] as const;
     type Corner = (typeof CORNERS)[number];
@@ -866,6 +878,102 @@ for (let i = 0; i < max; i++) {
       peelEl.setAttribute('data-corner', c);
     };
 
+    // ---- torn edges: jagged clip-path profiles in % of the peel box,
+    // regenerated on every grab so each rip is different — but stable while
+    // you drag (no flicker). The crease bows toward the corner like real
+    // paper; the flap's free edges and the pad's screen edges get the jags.
+    const jags = (n: number, amp: number) =>
+      Array.from({ length: n + 1 }, (_, i) =>
+        i === 0 || i === n ? 0 : (Math.random() * 2 - 1) * amp * (Math.random() < 0.15 ? 2.4 : 1)
+      );
+    const makeTear = () => {
+      const N = 16;
+      const bow = 2.2 + Math.random() * 1.8;
+      const crease: string[] = [];
+      for (let i = 0; i <= N; i++) {
+        const t = i / N;
+        const b = bow * Math.sin(Math.PI * t) + (i === 0 || i === N ? 0 : (Math.random() - 0.5) * 0.7);
+        crease.push(`${(100 * (1 - t) - b).toFixed(2)}% ${(100 * t - b).toFixed(2)}%`);
+      }
+      // the flap: curved crease on one side, ripped-free edges on the other two
+      const M = 12;
+      const eB = jags(M, 1.2);
+      const eR = jags(M, 1.2);
+      const ins = (j: number, i: number) => (i === 0 || i === M ? 0 : 0.35 + Math.abs(j));
+      const bottom = eB.map((j, i) => `${((i / M) * 100).toFixed(2)}% ${(100 - ins(j, i)).toFixed(2)}%`);
+      const right = eR.map((j, i) => `${(100 - ins(j, i)).toFixed(2)}% ${(100 - (i / M) * 100).toFixed(2)}%`);
+      foldEl.style.clipPath = `polygon(${crease.join(',')},${bottom.join(',')},${right.join(',')})`;
+      // the pad showing through, hemmed by the same crease
+      holeEl.style.clipPath = `polygon(0% 0%, ${crease.join(',')})`;
+      // fibre remnants left along the sheet's old screen edges
+      const K = 18;
+      const fT = jags(K, 0.9);
+      const fL = jags(K, 0.9);
+      const topIn = fT.map((j, i) => `${(100 - (i / K) * 100).toFixed(2)}% ${(0.25 + Math.abs(j) * 1.7).toFixed(2)}%`);
+      const leftIn = fL.map((j, i) => `${(0.25 + Math.abs(j) * 1.7).toFixed(2)}% ${((i / K) * 100).toFixed(2)}%`);
+      frayEl.style.clipPath = `polygon(0% 100%, 0% 0%, 100% 0%, ${topIn.join(',')}, ${leftIn.join(',')})`;
+    };
+    makeTear();
+
+    // little paper crumbs shed at the tearing edge
+    const tearSpecks = (n: number, spread = 8) => {
+      if (reduce) return;
+      const p0 = cornerPt(activeCorner);
+      const dx = activeCorner === 'tl' || activeCorner === 'bl' ? 1 : -1;
+      const dy = activeCorner === 'tl' || activeCorner === 'tr' ? 1 : -1;
+      const s = peelSize(peel);
+      for (let i = 0; i < n; i++) {
+        const t = Math.random();
+        const x = p0.x + dx * (s * (1 - t) + (Math.random() - 0.5) * spread);
+        const y = p0.y + dy * (s * t + (Math.random() - 0.5) * spread);
+        const d = document.createElement('div');
+        const sz = 1.5 + Math.random() * 3;
+        d.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${sz}px;height:${(sz * (0.6 + Math.random())).toFixed(1)}px;background:${Math.random() < 0.5 ? '#e9e9e4' : '#f9f9f5'};box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);z-index:21;pointer-events:none;`;
+        document.body.appendChild(d);
+        d.animate(
+          [
+            { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+            {
+              transform: `translate(${(Math.random() - 0.5) * 70}px, ${20 + Math.random() * 80}px) rotate(${(Math.random() - 0.5) * 260}deg)`,
+              opacity: 0,
+            },
+          ],
+          { duration: 450 + Math.random() * 450, easing: 'cubic-bezier(.2,.55,.35,1)' }
+        ).onfinish = () => d.remove();
+      }
+    };
+
+    // fibre crackle while the sheet tears — short bursts from the same noise buffer
+    let crackleAcc = 0;
+    const playCrackle = (v: number) => {
+      if (!sound) return;
+      const actx = sound.ctx;
+      const src = actx.createBufferSource();
+      src.buffer = sound.buf;
+      const hp = actx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 1600 + Math.random() * 1800;
+      const g = actx.createGain();
+      const t0 = actx.currentTime;
+      const dur = 0.03 + Math.random() * 0.05;
+      g.gain.setValueAtTime(0.05 + 0.15 * v, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      src.connect(hp).connect(g).connect(actx.destination);
+      src.start(t0, Math.random() * 0.8, dur + 0.02);
+    };
+    const tearTick = (delta: number) => {
+      if (delta <= 0.002) return;
+      crackleAcc += delta;
+      if (crackleAcc > 0.025 + Math.random() * 0.035) {
+        crackleAcc = 0;
+        playCrackle(Math.min(1, delta * 30));
+        tearSpecks(2);
+      }
+    };
+    const tearBurst = () => {
+      for (let i = 0; i < 9; i++) window.setTimeout(() => playCrackle(0.9), i * 16 + Math.random() * 24);
+    };
+
     const applyPeel = () => {
       if (peel <= 0.001 && !committing) {
         peelEl.classList.remove('on');
@@ -875,12 +983,17 @@ for (let i = 0; i < max; i++) {
       const s = peelSize(peel);
       peelEl.style.width = s + 'px';
       peelEl.style.height = s + 'px';
+      // the lifted flap floats higher as the peel grows: deeper, softer shadow
+      foldEl.style.filter = `drop-shadow(${(-3 - peel * 8).toFixed(1)}px ${(3 + peel * 8).toFixed(1)}px ${(6 + peel * 12).toFixed(1)}px rgba(0,0,0,${(0.1 + peel * 0.12).toFixed(3)}))`;
     };
 
     // lerps the rendered peel toward its target every frame (called from frame())
+    let peelPrev = 0;
     const updatePeel = () => {
       const k = peeling || committing ? 0.35 : 0.2;
       peel += (peelTarget - peel) * k;
+      if (peeling) tearTick(peel - peelPrev);
+      peelPrev = peel;
       applyPeel();
     };
 
@@ -926,12 +1039,17 @@ for (let i = 0; i < max; i++) {
     const ripTryGrab = (e: PointerEvent) => {
       if (committing) return false;
       const { corner, dist } = nearestCorner(e.clientX, e.clientY);
-      if (armed) {
+      if (e.pointerType === 'touch') {
+        // no hover on touch — a press near a corner grabs it directly
+        if (dist > HOVER_R * 0.55) return false;
+      } else if (armed) {
         if (dist > HOVER_R) return false;
       } else if (dist > ARM_R) {
         return false;
       }
       setCorner(corner);
+      makeTear(); // fresh torn edges for this rip
+      initSound(); // user gesture — the crackle may speak
       peeling = true;
       armed = false;
       if (armTimer) {
@@ -959,6 +1077,13 @@ for (let i = 0; i < max; i++) {
       peeling = false;
       document.body.style.cursor = '';
       peelTarget = 1.35; // sweep the fold across the sheet
+      tearBurst();
+      tearSpecks(18, 26);
+      // the note underneath is written along this rip's slant
+      letterEl.style.setProperty(
+        '--lt-tilt',
+        activeCorner === 'tr' || activeCorner === 'bl' ? '10deg' : '-10deg'
+      );
       window.setTimeout(
         () => {
           frozen = true;
@@ -981,6 +1106,34 @@ for (let i = 0; i < max; i++) {
       else settleBack();
     };
 
+    // ---- the handwritten note ----
+    const askEl = document.getElementById('cv-lt-ask') as HTMLElement;
+    const yesEl = document.getElementById('cv-lt-yes') as HTMLElement;
+    const formEl = document.getElementById('cv-lt-form') as HTMLElement;
+    const backEl = document.getElementById('cv-lt-back') as HTMLElement;
+    const nameEl = document.getElementById('cv-lt-name') as HTMLInputElement;
+    const replyEl = document.getElementById('cv-lt-reply') as HTMLInputElement;
+    const ASK_TEXT = askEl.textContent!.trim();
+
+    // hand-set type: every letter leans and sits a little differently
+    const scrawl = (el: HTMLElement, text: string) => {
+      el.textContent = '';
+      for (const ch of text) {
+        if (ch === ' ') {
+          el.append(' ');
+          continue;
+        }
+        const s = document.createElement('span');
+        s.textContent = ch;
+        s.style.display = 'inline-block';
+        s.style.transform = `rotate(${(Math.random() * 8 - 4).toFixed(1)}deg) translateY(${(Math.random() * 3.2 - 1.6).toFixed(1)}px)`;
+        el.append(s);
+      }
+    };
+    scrawl(askEl, ASK_TEXT);
+    scrawl(yesEl, yesEl.textContent!.trim());
+    scrawl(backEl, backEl.textContent!.trim());
+
     // put the page back (either "put it back" or after a send)
     const closeLetter = () => {
       letterEl.classList.remove('show');
@@ -995,14 +1148,13 @@ for (let i = 0; i < max; i++) {
           peelTarget = 0;
           peel = 0;
           applyPeel();
-          // restore the form for a possible next rip this session
-          const h2 = letterEl.querySelector('h2');
-          if (h2) h2.innerHTML = letterTitle;
-          const kicker = letterEl.querySelector('.cv-lt-kicker span:last-child');
-          if (kicker) kicker.textContent = 'unsent';
-          letterEl
-            .querySelectorAll<HTMLElement>('.cv-field, .cv-letter-actions')
-            .forEach((n) => (n.style.display = ''));
+          // restore the note for a possible next rip this session
+          scrawl(askEl, ASK_TEXT);
+          yesEl.style.display = '';
+          formEl.hidden = true;
+          backEl.parentElement!.style.display = '';
+          nameEl.value = '';
+          replyEl.value = '';
         },
         reduce ? 0 : 460
       );
@@ -1018,33 +1170,112 @@ for (let i = 0; i < max; i++) {
     const SEND_URL = 'https://api.web3forms.com/submit';
     const SEND_KEY = '9d1d12c4-7d97-4146-ba7a-978038d8fb39'; // → zurara.design@gmail.com
 
-    // flatten the ripped sheet to a JPEG + the two optional fields
-    const captureLetter = () => {
-      const name = (document.getElementById('cv-lt-name') as HTMLInputElement)?.value || '';
-      const reply = (document.getElementById('cv-lt-reply') as HTMLInputElement)?.value || '';
-      let img = '';
-      try {
-        const out = document.createElement('canvas');
-        const scale = Math.min(1, 1200 / paper.width);
-        out.width = Math.round(paper.width * scale);
-        out.height = Math.round(paper.height * scale);
-        const o = out.getContext('2d')!;
+    // the paper roll alone — every stroke, full loop width
+    const flattenPaper = () => {
+      const out = document.createElement('canvas');
+      const scale = Math.min(1, 1200 / paper.width);
+      out.width = Math.round(paper.width * scale);
+      out.height = Math.round(paper.height * scale);
+      const o = out.getContext('2d')!;
+      o.fillStyle = '#fff';
+      o.fillRect(0, 0, out.width, out.height);
+      o.drawImage(paper, 0, 0, out.width, out.height);
+      return out.toDataURL('image/jpeg', 0.6);
+    };
+
+    // recreate the visitor's viewport on a canvas: strokes at the frozen
+    // conveyor offset, plus every card at its exact position/tilt/scale with
+    // its own ink — so the letter shows WHERE everything was when it ripped
+    const captureViewport = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const k = Math.min(1.5, Math.max(1, 1400 / vw));
+      const out = document.createElement('canvas');
+      out.width = Math.round(vw * k);
+      out.height = Math.round(vh * k);
+      const o = out.getContext('2d')!;
+      o.fillStyle = '#fff';
+      o.fillRect(0, 0, out.width, out.height);
+      o.scale(k, k);
+      const off = wrapP(cur);
+      for (let x = -off; x < vw; x += PW) o.drawImage(paper, x, 0, paper.width / dpr, paper.height / dpr);
+      for (const c of model) {
+        const r = c.el.getBoundingClientRect();
+        if (r.right < -60 || r.left > vw + 60) continue;
+        const w0 = c.el.offsetWidth;
+        const h0 = c.el.offsetHeight;
+        o.save();
+        o.translate(r.left + r.width / 2, r.top + r.height / 2);
+        o.rotate(((c.tilt + c.pr) * Math.PI) / 180);
+        o.scale(c.scale, c.scale);
+        o.translate(-w0 / 2, -h0 / 2);
+        // the frosted card face, opaque enough to read against the strokes
+        o.globalAlpha = 0.9;
         o.fillStyle = '#fff';
-        o.fillRect(0, 0, out.width, out.height);
-        o.drawImage(paper, 0, 0, out.width, out.height);
-        img = out.toDataURL('image/jpeg', 0.6);
+        o.fillRect(0, 0, w0, h0);
+        o.globalAlpha = 1;
+        o.strokeStyle = '#0a0a0a';
+        o.lineWidth = 1;
+        o.strokeRect(0.5, 0.5, w0 - 1, h0 - 1);
+        const pad = w0 > 200 ? 22 : 16;
+        o.fillStyle = '#0a0a0a';
+        (o as any).letterSpacing = '2px';
+        o.font = '600 11px Urbanist, sans-serif';
+        o.fillText((c.el.querySelector('.cv-kind')?.textContent ?? '').trim().toUpperCase(), pad, pad + 9);
+        (o as any).letterSpacing = '0px';
+        const ts = w0 > 200 ? 26 : 20;
+        o.font = `${ts}px Fraunces, Georgia, serif`;
+        const words = (c.el.querySelector('.cv-title')?.textContent ?? '').trim().split(/\s+/);
+        const lines: string[] = [];
+        let line = '';
+        for (const wd of words) {
+          const tryLine = line ? line + ' ' + wd : wd;
+          if (o.measureText(tryLine).width > w0 - pad * 2 && line) {
+            lines.push(line);
+            line = wd;
+          } else line = tryLine;
+        }
+        if (line) lines.push(line);
+        const lh = ts * 1.12;
+        let ty = h0 - pad - 22 - (lines.length - 1) * lh;
+        for (const ln of lines) {
+          o.fillText(ln, pad, ty);
+          ty += lh;
+        }
+        o.globalAlpha = 0.7;
+        o.font = '12px Urbanist, sans-serif';
+        o.fillText((c.el.querySelector('.cv-meta')?.textContent ?? '').trim(), pad, h0 - pad + 4);
+        o.globalAlpha = 1;
+        const inkCv = c.el.querySelector('canvas.cv-ink') as HTMLCanvasElement | null;
+        if (inkCv) o.drawImage(inkCv, 0, 0, w0, h0);
+        o.restore();
+      }
+      return out.toDataURL('image/jpeg', 0.72);
+    };
+
+    // flatten the ripped sheet + the two optional fields
+    const captureLetter = () => {
+      let img = '';
+      let paperImg = '';
+      try {
+        img = captureViewport();
       } catch {
         /* canvas failure — send the words alone */
       }
-      return { t: Date.now(), name, reply, img };
+      try {
+        paperImg = flattenPaper();
+      } catch {
+        /* likewise */
+      }
+      return { t: Date.now(), name: nameEl.value || '', reply: replyEl.value || '', img, paper: paperImg };
     };
 
     const doSend = () => {
       const letter = captureLetter();
-      // always keep a local copy…
+      // always keep a local copy… (viewport only — the paper roll would eat quota)
       try {
         const box = JSON.parse(localStorage.getItem('pencil-letters') || '[]');
-        box.push(letter);
+        box.push({ t: letter.t, name: letter.name, reply: letter.reply, img: letter.img });
         while (box.length > 8) box.shift();
         localStorage.setItem('pencil-letters', JSON.stringify(box));
       } catch {
@@ -1069,72 +1300,44 @@ for (let i = 0; i < max; i++) {
             subject: `✉ a letter from the site${letter.name ? ` — ${letter.name}` : ''}`,
             from_name: letter.name || 'anonymous visitor',
             reply_to: letter.reply || undefined,
-            message: `from: ${letter.name || '—'}\nreply: ${letter.reply || '—'}\n\ndrawing (paste into a browser address bar or an <img src>):\n${letter.img}`,
+            message: `from: ${letter.name || '—'}\nreply: ${letter.reply || '—'}\n\nviewport (paste into a browser address bar or an <img src>):\n${letter.img}\n\nfull paper roll:\n${letter.paper}`,
           }),
         }).catch(() => {
           /* offline — the local copy survives */
         });
       }
-      const h2 = letterEl.querySelector('h2');
-      if (h2) h2.textContent = 'Sent. It’ll find me.';
-      const kicker = letterEl.querySelector('.cv-lt-kicker span:last-child');
-      if (kicker) kicker.textContent = 'sent';
-      letterEl
-        .querySelectorAll<HTMLElement>('.cv-field, .cv-letter-actions')
-        .forEach((n) => (n.style.display = 'none'));
-      window.setTimeout(closeLetter, 1400);
+      scrawl(askEl, 'sent. it’ll find me.');
+      formEl.hidden = true;
+      backEl.parentElement!.style.display = 'none';
+      window.setTimeout(closeLetter, 1600);
     };
 
-    document.getElementById('cv-lt-send')?.addEventListener('click', doSend);
-    document.getElementById('cv-lt-back')?.addEventListener('click', closeLetter);
-    document.getElementById('cv-lt-send')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        doSend();
-      }
+    // handwritten "buttons": click, Enter or Space all press them
+    const press = (el: HTMLElement, fn: () => void) => {
+      el.addEventListener('click', fn);
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fn();
+        }
+      });
+    };
+    press(yesEl, () => {
+      // the only "next step": the question stays, two ruled lines appear
+      yesEl.style.display = 'none';
+      formEl.hidden = false;
+      nameEl.focus();
     });
-    document.getElementById('cv-lt-back')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        closeLetter();
-      }
-    });
+    press(document.getElementById('cv-lt-send') as HTMLElement, doSend);
+    press(backEl, closeLetter);
 
     // hover + peel release (drawing pointerdown/move already route into the rip)
     window.addEventListener('pointermove', onHover, { passive: true });
     window.addEventListener('pointerup', ripUp);
     window.addEventListener('pointercancel', ripUp);
 
-    // touch fallback: no hover, so a drag starting in a corner peels directly
-    let touchPeel = false;
-    window.addEventListener(
-      'touchstart',
-      (e) => {
-        if (frozen || committing) return;
-        const t = e.touches[0];
-        const { corner, dist } = nearestCorner(t.clientX, t.clientY);
-        if (dist <= HOVER_R * 0.55) {
-          setCorner(corner);
-          peeling = true;
-          touchPeel = true;
-        }
-      },
-      { passive: true }
-    );
-    window.addEventListener(
-      'touchmove',
-      (e) => {
-        if (!touchPeel) return;
-        ripMove(e.touches[0]);
-      },
-      { passive: true }
-    );
-    window.addEventListener('touchend', () => {
-      if (touchPeel) {
-        touchPeel = false;
-        ripUp();
-      }
-    });
+    // (touch peeling rides the same pointer events as the mouse — a press
+    // near a corner grabs it in ripTryGrab, touch-action:none keeps it ours)
 
     // ambient breeze: every so often, lift a random corner a touch, then settle
     if (!reduce) {
