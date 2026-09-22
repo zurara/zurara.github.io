@@ -64,11 +64,7 @@ npm run preview
   left (its note is always emitted, empty until a page fills it client-side).
   `rough` draws the CTA's outline by hand and rings it on hover — opt-in,
   because it needs the page to define the `#rough-*` filters, which only
-  `/minimap` does. The wordmark is written in Gochi Hand (19px/400, no
-  tracking, no uppercasing — the face ships one weight), and its 64px height
-  and 28px inset are tuned so it sits on exactly the same pixel as the home
-  conveyor's `.cv-tl`: box top 22px on desktop, 15px under 640px. Changing one
-  means changing the other, and the numbers are measured, not chosen.
+  `/minimap` does. The wordmark comes from `components/Wordmark.astro`.
 - **`src/pages/404.astro`** — its own small shell (`Fonts` + `TopNav`, no
   layout). Two marks and nothing else: the number, ringed by one pen stroke
   that is drawn on arrival, and `back home`, under which a line is ruled on
@@ -77,6 +73,18 @@ npm run preview
   at the link's 30px), so the ring and the rule are both 4px. Tag rings are
   finer (1.4px at 22px text); that ratio carried up to a 136px number swallows
   the digits, so this page matches the pen, not the ratio.
+- **`components/Wordmark.astro`** — "zurara" in Nanum Pen Script, kept as an
+  SVG outline rather than as text: six letters are not worth a third webfont
+  (that face is a 3MB Korean font upstream), and a drawn mark cannot reflow or
+  fall back to another hand. The path came from the font's own glyphs via
+  fontTools, rounded to font units. The viewBox is the ink's bounding box, so
+  `height` IS the height of the letters — 12px by default — and the outline is
+  stroked 0.5px in `currentColor` (non-scaling) because the pen is thin at
+  that size. It appears in exactly two places, TopNav and the home conveyor's
+  `.cv-tl`, and they must land on the same pixel: **top 25.5px / left 28px on
+  desktop, 17px / 18px under 640px**. The .5 is real — TopNav's 64px bar
+  includes its 1px rule, so it centres in 63. These numbers are measured after
+  any change, never carried over.
 - **`src/lib/ring.ts`** — the hand, shared: `ringPath()` (one continuous stroke
   circled round something, overshooting where it closes), `rulePath()` (a line
   ruled under a word, one pass, off level, round-capped — ONE path rather than
