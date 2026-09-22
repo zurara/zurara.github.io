@@ -20,15 +20,42 @@ interface Props {
   backHref?: string;
   backLabel?: string;
   cta?: Cta;
+  /** a quieter link sitting left of the CTA — a repo link, a star count. Its
+      note is always rendered (empty until something fills it), so a page can
+      update the number client-side without the bar reflowing. */
+  secondary?: Cta;
 }
-const { backHref = '/', backLabel = 'zurara', cta } = Astro.props;
+const { backHref = '/', backLabel = 'zurara', cta, secondary } = Astro.props;
 ---
 
 <header class="top">
   <a class="back" href={backHref}>{backLabel}</a>
   {
-    cta && (
+    (cta || secondary) && (
       <nav>
+        {/* aria-label, because the label below is hidden on narrow screens and
+            the icon alone would leave the link with no accessible name */}
+        {secondary && (
+          <a
+            class="btn ghost"
+            data-cta="secondary"
+            aria-label={secondary.label}
+            href={secondary.href}
+            target={secondary.external ? '_blank' : undefined}
+            rel={secondary.external ? 'noopener' : undefined}
+          >
+            {secondary.icon && (
+              <svg class="i" aria-hidden="true">
+                <use href={`#${secondary.icon}`} />
+              </svg>
+            )}
+            <span class="btn-label">{secondary.label}</span>
+            <span class="btn-sz" data-cta-note>
+              {secondary.note}
+            </span>
+          </a>
+        )}
+        {cta && (
         <a
           class="btn"
           href={cta.href}
@@ -44,6 +71,7 @@ const { backHref = '/', backLabel = 'zurara', cta } = Astro.props;
           {cta.label}
           {cta.note && <span class="btn-sz">{cta.note}</span>}
         </a>
+        )}
       </nav>
     )
   }
@@ -125,6 +153,20 @@ const { backHref = '/', backLabel = 'zurara', cta } = Astro.props;
     border-color: var(--ink, #0a0a0a);
     transform: translateY(-1px);
   }
+  /* the secondary never competes with the CTA: no outline until hover */
+  .btn.ghost {
+    padding: 9px 12px;
+    border-color: transparent;
+    color: var(--ink-2, #6a6a6a);
+  }
+  .btn.ghost:hover {
+    color: var(--ink, #0a0a0a);
+    border-color: var(--rule, #ececec);
+  }
+  /* a count that has not arrived yet must not leave a gap behind it */
+  .btn-sz:empty {
+    display: none;
+  }
   .top .i {
     width: 18px;
     height: 18px;
@@ -145,6 +187,14 @@ const { backHref = '/', backLabel = 'zurara', cta } = Astro.props;
     .btn {
       padding: 7px 13px;
       font-size: 13px;
+    }
+    /* two buttons do not fit next to the wordmark: the secondary keeps its
+       icon and its number, and drops the word */
+    .btn.ghost {
+      padding: 7px 9px;
+    }
+    .btn.ghost .btn-label {
+      display: none;
     }
   }
 </style>
