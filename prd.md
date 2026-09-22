@@ -5,23 +5,24 @@ conveyor. Roughly priority-ordered. Checkboxes so it doubles as a tracker.
 
 ## P1 — correctness & consistency (the site contradicts itself today)
 
-- [ ] **Restyle `404.astro`.** It's the only page still on the legacy
-      `BaseLayout` → it renders with the old colorful theme, Header, Footer and
-      Lenis. Move it to `MinimalLayout` (or a tiny dedicated B&W 404) so a
-      missing page doesn't break the visual system.
-- [ ] **Resolve the Header.** `Header` links to `/#work`, `/#writing`,
-      `/#about`, `/#contact` — none exist on the conveyor home. Decide whether
-      the B&W site needs any global nav. If not, drop it; if yes, repoint links
-      (e.g. to `/`) and restyle to match.
+- [x] **Restyle `404.astro`.** Done — it wears `TopNav` and the B&W paper
+      language on its own small shell: the number ringed by one pen stroke
+      (`lib/ring.ts`, shared with `Tags`), the way back handwritten over a
+      pencil squiggle. No script, no legacy layout.
+- [x] **Resolve the Header.** Dropped. The conveyor home has no anchors to
+      point at, and the wordmark in `TopNav` is the only global nav the B&W
+      site needs.
 
-## P2 — remove dead code (once P1 decisions are made)
+## P2 — remove dead code
 
-- [ ] **Delete orphaned components** if not repurposed: `Hero`, `Work`,
-      `Writing`, `About`, `Contact`.
-- [ ] **Retire the legacy runtime** once `404` no longer needs `BaseLayout`:
-      `BaseLayout`, `Header`, `Footer`, `scripts/motion.js`, `scripts/site.js`,
-      and the now-unused bulk of `styles/global.css`. Reconsider whether `gsap`
-      and `lenis` deps are still needed (the conveyor uses neither).
+- [x] **Delete orphaned components**: `Hero`, `Work`, `Writing`, `About`,
+      `Contact` — gone.
+- [x] **Retire the legacy runtime**: `BaseLayout`, `Header`, `Footer`,
+      `scripts/motion.js`, `scripts/site.js`, `styles/global.css`, and the
+      `gsap` + `lenis` dependencies — all removed.
+- [ ] **`src/content/site.json`** is now read by nothing (its consumers were in
+      the deleted set) but is still a Keystatic singleton. Either surface it
+      again or retire it from the CMS.
 
 ## P3 — content
 

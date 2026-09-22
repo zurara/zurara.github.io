@@ -58,10 +58,25 @@ npm run preview
     for `.detail` / `.prose` / tags / grayscale media / Fraunces headings.
     Top bar comes from `components/TopNav.astro`.
 - **`components/TopNav.astro`** — the one top bar for every scrolling page
-  (article, work, writing, minimap): wordmark left, OPTIONAL `cta` right
+  (article, work, writing, minimap, 404): wordmark left, OPTIONAL `cta` right
   (`{label, href, note?, icon?, download?, external?}`). Its 64px height and
   28px inset are tuned so the wordmark sits on exactly the same pixel as the
   home conveyor's `.cv-tl` — changing one means changing the other.
+- **`src/pages/404.astro`** — its own small shell (`Fonts` + `TopNav`, no
+  layout). Two marks and nothing else: the number, ringed by one pen stroke
+  that is drawn on arrival, and `back home`, under which a line is ruled on
+  hover. No script — every path and the per-letter lean are built at build
+  time. **One nib across the page**: Gochi Hand's stem measures 0.133em (4px
+  at the link's 30px), so the ring and the rule are both 4px. Tag rings are
+  finer (1.4px at 22px text); that ratio carried up to a 136px number swallows
+  the digits, so this page matches the pen, not the ratio.
+- **`src/lib/ring.ts`** — the hand, shared: `ringPath()` (one continuous stroke
+  circled round something, overshooting where it closes), `rulePath()` (a line
+  ruled under a word, one pass, off level, round-capped — ONE path rather than
+  a repeating tile, so the ends can be round and it can be drawn on with
+  `stroke-dashoffset`) and `scrawl()` (per-letter lean and drop). All seeded
+  from their text, so a given word is always written the same way. Used by
+  `Tags.astro` and `404.astro`.
 
 ## Style system
 
@@ -76,17 +91,16 @@ stroke ringed round it (`components/Tags.astro`). Display/headings = Gochi Hand
 (`--font-display`); body = Onest (`--font-body`). New pages should use
 `MinimalLayout` / `ArticleLayout` — not the legacy `BaseLayout`.
 
-## ⚠️ Legacy / orphaned — do NOT assume these are live
+## Removed legacy (do not bring it back)
 
-The original multi-section homepage was replaced by the conveyor. As a result:
+The original multi-section homepage was replaced by the conveyor, and the
+legacy runtime it needed has now been deleted: `BaseLayout`, `Header`,
+`Footer`, the orphaned `Hero` / `Work` / `Writing` / `About` / `Contact`
+sections, `scripts/motion.js`, `scripts/site.js` and `styles/global.css`, plus
+the `gsap` and `lenis` dependencies (the conveyor uses neither). Every page now
+runs on `MinimalLayout`, `ArticleLayout`, or its own small shell.
 
-- **Orphaned components** (imported by nothing): `Hero`, `Work`, `Writing`,
-  `About`, `Contact`.
-- **`BaseLayout`** (with `Header`, `Footer`, `styles/global.css`,
-  `scripts/motion.js` [Lenis + GSAP], `scripts/site.js`) is now used **only by
-  `404.astro`**. So Lenis smooth-scroll and the GSAP card animation no longer
-  run on the real site, and `global.css` is largely dead.
-- **`Header`** still links to `/#work`, `/#writing`, `/#about`, `/#contact` —
-  anchors that don't exist on the conveyor home.
+`src/content/site.json` is still edited through Keystatic but no component
+reads it any more — the components that did were part of the deleted set.
 
-Cleanup plan lives in **`prd.md`**.
+Remaining backlog lives in **`prd.md`**.

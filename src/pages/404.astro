@@ -1,14 +1,254 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import TopNav from '../components/TopNav.astro';
+import Fonts from '../components/Fonts.astro';
+import { ringPath, rulePath, scrawl } from '../lib/ring';
+
+// The missing page, in the site's own hand. It wears the same chrome as every
+// other scrolling page (TopNav — the wordmark lands on the same pixel as the
+// home conveyor's), and borrows the two gestures the site already owns: the
+// number is ringed with one pen stroke, like a tag, and the way back is
+// underlined with a pencil squiggle, like the note under the ripped page.
+//
+// Strictly black on white: marker orange is spoken for elsewhere and a 404 is
+// not one of its two places.
+const title = 'Not found — zurara';
+const description = 'That page is not here.';
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+const NUM = '404';
+// the ring is drawn in this box and stretched round the number
+const W = 100;
+const H = 60;
+const d = ringPath(NUM, W, H);
+// hand-set digits: each one leans and sits a little differently
+const digits = scrawl(NUM, 3.5, 2.4);
+const backLabel = scrawl('back home', 3, 1.2);
+// the line ruled under the way back — stretched to the word, round-capped
+const RW = 200;
+const RH = 12;
+const rule = rulePath('back home', RW, RH);
 ---
 
-<BaseLayout title="Not found — zurara" description="Page not found.">
-  <section class="section wrap contact" style="min-height: 60vh; display: grid; place-content: center; text-align: center;">
-    <div>
-      <p class="eyebrow">404</p>
-      <h1 class="contact-title">This page wandered off.</h1>
-      <p class="contact-lede">The link may be broken, or the page has moved.</p>
-      <a class="btn btn-primary" href="/" style="margin-top: 2rem;">Back home</a>
-    </div>
-  </section>
-</BaseLayout>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <Fonts />
+
+    <style is:global>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        --ink: #0a0a0a;
+        --paper: #ffffff;
+        --rule: #ececec;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--font-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100svh;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <TopNav />
+
+    <main class="nf">
+      <!-- the number, ringed by hand — it is the page's heading, so the
+           label lands on an element that actually carries a role -->
+      <h1 class="nf-num" aria-label="404">
+        <svg class="nf-ring" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+          <path d={d} pathLength="1" />
+        </svg>
+        <span aria-hidden="true">
+          {digits.map((g) => <i style={`transform:rotate(${g.rot}deg) translateY(${g.dy}px)`}>{g.ch}</i>)}
+        </span>
+      </h1>
+
+      <!-- the letters are hand-set one by one, so the link carries its own
+           accessible name — otherwise it is announced letter by letter -->
+      <a class="nf-back" href="/" aria-label="Back home">
+        <span aria-hidden="true">
+          {backLabel.map((g) => <i style={`transform:rotate(${g.rot}deg) translateY(${g.dy}px)`}>{g.ch === ' ' ? '\u00a0' : g.ch}</i>)}
+        </span>
+        <svg class="nf-rule" viewBox={`0 0 ${RW} ${RH}`} preserveAspectRatio="none" aria-hidden="true">
+          <path d={rule} pathLength="1" />
+        </svg>
+      </a>
+    </main>
+
+    <style>
+      .nf {
+        flex: 1;
+        width: 100%;
+        max-width: 680px;
+        padding: 0 28px 96px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      /* ---- the number ---- */
+      .nf-num {
+        position: relative;
+        display: inline-block;
+        margin: 0;
+        padding: 0 0.1em;
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: clamp(76px, 17vw, 148px);
+        line-height: 1;
+        letter-spacing: 0.02em;
+      }
+      .nf-num i {
+        display: inline-block;
+        font-style: normal;
+      }
+      /* The ring needs room to overshoot the number it circles, and it is
+         drawn with the SAME NIB as everything else on the page: Gochi Hand's
+         stem measures 0.133em, which is 4px at the link's 30px — so the ring
+         is 4px too. One pen picked up twice, not a hairline and a marker.
+         (Tag rings are 1.4px at 22px text; that ratio carried up to a 136px
+         number swallows the digits, so the page matches the pen, not the
+         ratio.) */
+      .nf-ring {
+        position: absolute;
+        inset: -0.15em 0.01em -0.09em;
+        overflow: visible;
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 4px;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+        pointer-events: none;
+        /* drawn on arrival — one pass of the pen, left to right round the number */
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        animation: ink 0.9s cubic-bezier(0.3, 0.7, 0.3, 1) 0.15s forwards;
+      }
+      @keyframes ink {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      /* ---- the way back: hover and the line is drawn under it ------------
+         The word never moves. The line is revealed left to right by a clip
+         (not a scale), so the wave keeps its own rhythm instead of stretching
+         — it reads as a line being drawn, not a band growing.
+
+         Same nib as the letters: Gochi Hand's stem measures 0.133em, so the
+         stroke is 4 units in a 30-unit-tall tile painted 0.4em tall, and the
+         ink is the same solid black. Everything is sized in em, so the line
+         keeps matching the hand at any font-size. */
+      .nf-back {
+        position: relative;
+        display: inline-block;
+        margin-top: 54px;
+        padding: 0 0.26em 0.3em;
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 30px;
+        line-height: 1.1;
+      }
+      .nf-back i {
+        display: inline-block;
+        font-style: normal;
+      }
+      .nf-rule {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        /* an <svg> is a replaced element — left/right alone would leave it at
+           its intrinsic width, so the width is set outright */
+        width: 100%;
+        height: 0.4em;
+        overflow: visible;
+        fill: none;
+        stroke: var(--ink);
+        /* The same nib as the letters: Gochi Hand's stem is 0.133em, and this
+           box is 0.4em tall over a 12-unit viewBox — so one unit IS one pixel
+           vertically and a 4-unit stroke paints 4px, exactly the stem, at any
+           font-size. (Deliberately NOT non-scaling-stroke: the box is stretched
+           to the word's width, and that stretch would thin the line.) */
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+        /* drawn on, left to right, like the ring round the number — and
+           because it is one path rather than a repeating tile, it starts and
+           ends on a round cap instead of a clipped edge */
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        transition: stroke-dashoffset 0.34s cubic-bezier(0.3, 0.7, 0.3, 1);
+      }
+      .nf-back:hover .nf-rule,
+      .nf-back:focus-visible .nf-rule {
+        stroke-dashoffset: 0;
+      }
+      .nf-back:focus-visible {
+        outline: none;
+      }
+
+      @media (max-width: 640px) {
+        .nf {
+          padding: 0 20px 72px;
+        }
+        .nf-back {
+          margin-top: 42px;
+          font-size: 26px;
+        }
+        /* no hover on touch — the line is simply there */
+        .nf-rule {
+          stroke-dashoffset: 0;
+        }
+        /* the nib follows the smaller hand down: 0.133em of 26px */
+        .nf-ring {
+          stroke-width: 3.5px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .nf-ring {
+          animation: none;
+          stroke-dashoffset: 0;
+        }
+        .nf-rule {
+          transition: none;
+        }
+      }
+    </style>
+  </body>
+</html>
