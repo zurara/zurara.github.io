@@ -71,7 +71,7 @@ const features = [
 
     <main>
       <section class="hero">
-        <h1>Minimap <em>is minimal mind mapping</em></h1>
+        <h1>Minimap <em>is minimal<br class="h1-br" /> mind mapping</em></h1>
         <p class="lede">A mindmap tool can't get any lighter — it's just an HTML file.</p>
       </section>
 
@@ -258,6 +258,16 @@ const features = [
       .hero {
         padding: clamp(48px, 9vw, 104px) 0 clamp(32px, 6vw, 56px);
         text-align: center;
+      }
+      /* the forced break only applies once "Minimap is minimal" fits one line;
+         below that the headline wraps on its own */
+      .h1-br {
+        display: none;
+      }
+      @media (min-width: 700px) {
+        .h1-br {
+          display: inline;
+        }
       }
       h1 {
         font-family: var(--display);
