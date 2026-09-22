@@ -1,0 +1,39 @@
+---
+/**
+ * Single source of truth for the site's webfonts and type tokens.
+ *
+ *   display → Gochi Hand   (headings, card titles, the handwritten note)
+ *   body    → Onest 300      (everything else)
+ *   mono    → system stack (code; never downloaded)
+ *
+ * Gochi Hand ships ONE weight (400) and no italic, so display text must never
+ * ask for 500/600/italic — the browser would synthesise it and the handwriting
+ * turns to mush. Use `font-weight: 400` wherever `--font-display` is set.
+ *
+ * Import this in every layout instead of hand-writing <link> tags, so the site
+ * requests one font stylesheet and the tokens can never drift apart.
+ */
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Onest:wght@300;400;500;600&display=swap"
+  rel="stylesheet"
+/>
+
+<style is:global>
+  :root {
+    --font-display: 'Gochi Hand', 'Bradley Hand', 'Segoe Script', cursive;
+    --font-body: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    /* Onest 300 everywhere, chips and labels included */
+    --font-body-weight: 300;
+    --font-ui-weight: 300;
+    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+    /* alias — some rules were written against `--display` */
+    --display: var(--font-display);
+  }
+  body {
+    font-weight: var(--font-body-weight);
+  }
+</style>

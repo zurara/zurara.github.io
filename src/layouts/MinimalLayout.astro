@@ -1,12 +1,14 @@
 ---
+import Fonts from '../components/Fonts.astro';
+
 interface Props {
   title?: string;
   description?: string;
 }
 
 const {
-  title = 'wangtsaiti — selected work',
-  description = 'wangtsaiti (zurara) — designer at Orthogonal. Selected projects and writing.',
+  title = 'zurara — selected work',
+  description = 'zurara — designer at Orthogonal. Selected projects and writing.',
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -26,13 +28,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta property="og:url" content={canonical} />
 
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Urbanist:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <Fonts />
 
     <style is:global>
       *,
@@ -48,7 +44,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         overflow: hidden;
         background: #ffffff;
         color: #0a0a0a;
-        font-family: 'Urbanist', system-ui, sans-serif;
+        font-family: var(--font-body);
         -webkit-font-smoothing: antialiased;
         /* the home is drawing paper — drags draw, they never select text */
         user-select: none;

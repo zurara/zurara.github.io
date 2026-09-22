@@ -1,4 +1,4 @@
-/* wangtsaiti — site interactions: theme toggle, scroll reveal, header shadow.
+/* zurara — site interactions: theme toggle, scroll reveal, header shadow.
    Initial theme is set pre-paint by an inline script in BaseLayout. */
 
 const root = document.documentElement;

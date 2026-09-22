@@ -12,7 +12,7 @@ const fmtDate = (d: Date) =>
   d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
 
 type Card = {
-  kind: 'Project' | 'Article';
+  kind: 'Project' | 'Article' | 'Tool';
   title: string;
   meta: string;
   href: string;
@@ -38,6 +38,19 @@ const articleCards: Card[] = articles.map((e) => ({
   tags: e.data.tags,
 }));
 
+// Tools live on this site rather than in a collection, so they are listed here
+// by hand. `external: false` keeps them in the same tab — they are our pages.
+const toolCards: Card[] = [
+  {
+    kind: 'Tool',
+    title: 'Minimap',
+    meta: 'Mindmap tool',
+    href: '/minimap',
+    external: false,
+    tags: ['Local-first', 'Keyboard'],
+  },
+];
+
 // Interleave projects and articles so the two kinds alternate across the track.
 const cards: Card[] = [];
 const max = Math.max(projectCards.length, articleCards.length);
@@ -45,13 +58,14 @@ for (let i = 0; i < max; i++) {
   if (projectCards[i]) cards.push(projectCards[i]);
   if (articleCards[i]) cards.push(articleCards[i]);
 }
+// Slot the tools in after the first card so one is visible early on the track.
+cards.splice(1, 0, ...toolCards);
 ---
 
 <main id="main">
-  <header class="cv-chrome cv-tl">wangtsaiti</header>
-  <div class="cv-chrome cv-tr">selected work &amp; writing</div>
-  <a class="cv-chrome cv-bl" href="mailto:zurara@orthogonal.dev">zurara@orthogonal.dev</a>
-  <div class="cv-chrome cv-br" id="cv-hint">scroll → &nbsp;·&nbsp; draw ✎</div>
+  <header class="cv-chrome cv-tl">zurara</header>
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><symbol id="d-arrow" viewBox="0 0 115 117"><g clip-path="url(#arrow-clip0)"> <path d="M53.5315 80.8966C47.0901 88.1434 41.0469 95.0151 34.9222 101.806C31.4839 105.62 27.9103 109.311 24.3951 113.056C24.1768 113.311 23.9351 113.544 23.6733 113.753C18.8397 117.256 17.402 117.887 13.1202 113.544C10.6975 111.086 7.92899 108.974 5.37667 106.639C4.2169 105.59 3.14721 104.446 2.17885 103.216C0.556138 101.128 0.634278 99.5264 2.3091 97.4943C3.30188 96.2883 4.30763 95.0889 5.37858 93.9536C14.1151 84.6942 22.8597 75.4421 31.6123 66.1991C32.2839 65.4892 32.9223 64.7483 33.5497 64.0515C29.2092 59.4578 24.9743 55.0314 20.8051 50.5423C18.529 48.0918 16.3382 45.5588 14.1605 43.022C12.6987 41.3226 12.7189 39.839 14.3839 38.3978C15.4824 37.4504 16.7174 36.6751 18.0469 36.0982C27.4496 32.0457 36.7923 27.8264 46.3319 24.1216C61.7896 18.1193 77.3923 12.4917 92.9145 6.65672C96.7684 5.2083 100.536 3.53238 104.374 2.04079C105.898 1.36451 107.502 0.886158 109.147 0.617676C113.181 0.167978 115.249 2.77861 113.975 6.66247C112.998 9.62996 111.76 12.5086 110.686 15.4434C103.012 36.4047 95.4089 57.3923 87.6471 78.3226C85.2433 84.8053 82.4513 91.1456 79.7687 97.5211C78.7453 99.9545 76.6347 100.704 74.2896 99.3826C72.9815 98.5381 71.7698 97.5531 70.6748 96.4452C64.9616 91.2887 59.2751 86.1087 53.5315 80.8966ZM20.5862 41.3953C27.434 47.9492 33.6506 54.0056 39.9987 59.9203C42.3934 62.1518 42.7347 63.2356 40.9107 65.8683C40.5218 66.4148 40.0994 66.9357 39.6457 67.4286C33.9079 73.8289 28.2117 80.2678 22.4062 86.6054C18.0416 91.3691 13.5384 96.0027 8.86378 100.939L18.5303 109.019C21.1777 106.218 23.672 103.678 26.0556 101.037C33.5353 92.7502 40.9369 84.3929 48.4446 76.1336C51.5786 72.6851 53.3648 72.5863 57.0434 75.4205C61.1071 78.5527 65.1211 81.7503 69.1237 84.9635C70.7432 86.2629 72.2727 87.6741 74.1326 89.2853C84.1105 62.8638 93.936 36.8472 103.875 10.53C75.9839 20.2959 48.4022 29.9116 20.5862 41.3953Z" fill="currentColor"/> </g> <defs> <clipPath id="arrow-clip0"> <rect width="114" height="117" fill="white" transform="translate(0.777344)"/> </clipPath> </defs></symbol><symbol id="d-pencil" viewBox="0 0 151 149"><g clip-path="url(#pencil-clip0)"> <path d="M6.22296 148.379C3.07752 148.346 1.42875 146.746 1.36875 143.992C1.35956 143.214 1.4585 142.439 1.66283 141.688C3.96892 132.991 6.41008 124.328 8.58249 115.597C9.52763 111.362 11.5886 107.456 14.5525 104.281C22.6355 95.8167 30.5868 87.2255 38.7645 78.8548C60.2764 56.8356 82.8369 35.9202 105.99 15.6347C111.017 11.2304 115.963 6.72785 121.106 2.46216C124.166 -0.0753939 125.338 -0.0174305 128.429 2.61577C132.838 6.3733 137.087 10.3208 141.363 14.2319C143.665 16.3368 145.872 18.5452 148.139 20.6884C151.074 23.4635 151.067 26.4284 148.27 29.3727C143.817 34.0574 139.483 38.8507 135.025 43.5282C133.42 45.2121 131.568 46.6572 129.889 48.2728C103.622 73.5526 77.36 98.837 51.1023 124.126C46.9336 128.138 42.7597 132.147 38.4873 136.048C37.3799 136.986 36.1105 137.713 34.7413 138.195C26.5282 141.351 18.2938 144.451 10.0381 147.494C8.78969 147.881 7.51462 148.178 6.22296 148.379ZM29.0705 121.225L117.54 36.3145C115.605 34.5037 113.763 32.7782 111.597 30.7494C81.2117 57.9162 53.5695 87.7082 24.8432 116.675L29.0705 121.225ZM37.2984 129.668C66.8293 101.17 96.4713 73.5389 124.781 44.6338L122.193 41.3415C91.6589 68.8067 62.6163 97.2189 32.8583 124.735L37.2984 129.668ZM20.8472 113.027C49.0772 83.3287 77.4108 54.5732 107.13 26.88L104.078 24.1727C73.938 51.0805 45.3091 79.3681 17.8734 108.998C18.5817 109.881 19.0779 110.464 19.5338 111.08C19.9349 111.617 20.2871 112.188 20.8499 113.027H20.8472ZM142.692 26.0009C137.769 19.7201 127.209 9.38968 124.087 7.75458L110.143 19.8777L131.274 38.5073C135.146 34.2702 138.87 30.1898 142.695 26.0009H142.692ZM13.7634 112.814C12.6763 118.399 11.694 123.266 10.8194 128.152C10.7119 128.898 10.8934 129.657 11.3268 130.273C13.3349 132.776 15.4661 135.181 17.6333 137.714L30.6253 132.753L13.7634 112.814Z" fill="currentColor"/> </g> <defs> <clipPath id="pencil-clip0"> <rect width="150" height="149" fill="white" transform="translate(0.777344)"/> </clipPath> </defs></symbol></svg>
+  <div class="cv-chrome cv-br" id="cv-hint">scroll <svg class="d"><use href="#d-arrow" /></svg> &nbsp;·&nbsp; draw <svg class="d"><use href="#d-pencil" /></svg></div>
   <canvas id="cv-pencil" aria-hidden="true"></canvas>
 
   <!-- page-peel / rip: a curling paper corner with torn, fibrous edges.
@@ -134,9 +148,9 @@ for (let i = 0; i < max; i++) {
   }
   .conveyor {
     /* a little pencil, hotspot at its tip (3,21) */
+    /* the doodle pencil, hotspot on its tip (bottom-left) */
     cursor:
-      url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24"%3E%3Cpath d="M3 21l1.5-5L16 4.5a2.1 2.1 0 0 1 3 3L7.5 19 3 21z" fill="%23fff" stroke="%230a0a0a" stroke-width="1.5" stroke-linejoin="round"/%3E%3Cpath d="M4.5 16.5L7 19" stroke="%230a0a0a" stroke-width="1.2"/%3E%3C/svg%3E')
-        3 21,
+      url('/cursors/pencil.svg') 1 27,
       crosshair;
   }
   /* cards are dragged with the pencil point too — cursor stays a pencil */
@@ -186,14 +200,14 @@ for (let i = 0; i < max; i++) {
     font-size: 11px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 300;
   }
   .cv-ext {
     margin-left: 4px;
   }
   .cv-title {
     margin-top: auto;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-weight: 400;
     font-size: 27px;
     line-height: 1.12;
@@ -216,22 +230,22 @@ for (let i = 0; i < max; i++) {
   .cv-tl {
     top: 26px;
     left: 28px;
-    font-weight: 600;
+    font-weight: 300;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-  }
-  .cv-tr {
-    top: 26px;
-    right: 28px;
-  }
-  .cv-bl {
-    bottom: 24px;
-    left: 28px;
   }
   .cv-br {
     bottom: 24px;
     right: 28px;
     opacity: 0.55;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .cv-br .d {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
   }
 
   @media (max-width: 640px) {
@@ -251,21 +265,9 @@ for (let i = 0; i < max; i++) {
       font-size: 11px;
       letter-spacing: 0.06em;
     }
-    .cv-tl,
-    .cv-tr {
-      top: 18px;
-    }
     .cv-tl {
+      top: 18px;
       left: 18px;
-    }
-    .cv-tr {
-      right: 18px;
-      max-width: 42%;
-      text-align: right;
-    }
-    .cv-bl {
-      left: 18px;
-      bottom: 18px;
     }
     .cv-br {
       right: 18px;
@@ -281,6 +283,12 @@ for (let i = 0; i < max; i++) {
      in JS, in %, so they scale with the box. pointer-events:none — all
      hit-testing is done in JS so drawing near a corner still works.
      Orientation per corner is a simple mirror. */
+  /* 撕纸暂时隐藏 — see PEEL_ON in the script below */
+  #cv-peel,
+  .cv-letter {
+    display: none !important;
+  }
+
   #cv-peel {
     position: fixed;
     z-index: 6;
@@ -367,7 +375,7 @@ for (let i = 0; i < max; i++) {
   .cv-letter-sheet {
     text-align: center;
     padding: 0 24px;
-    font-family: 'Caveat', 'Segoe Script', cursive;
+    font-family: var(--font-display);
     color: #2b2b2b;
     transform: rotate(var(--lt-tilt, -10deg)) translateY(18px);
     transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -377,7 +385,7 @@ for (let i = 0; i < max; i++) {
   }
   .cv-lt-ask {
     font-size: clamp(40px, 7vw, 66px);
-    font-weight: 600;
+    font-weight: 300;
     line-height: 1.12;
     margin: 0 0 26px;
   }
@@ -424,7 +432,7 @@ for (let i = 0; i < max; i++) {
     display: inline-block;
     margin-top: 26px;
     font-size: clamp(26px, 3.4vw, 32px);
-    font-weight: 600;
+    font-weight: 300;
     padding: 4px 26px 8px;
     border: 1.6px solid rgba(43, 43, 43, 0.85);
     border-radius: 49% 51% 46% 54% / 62% 48% 52% 38%;
@@ -461,7 +469,9 @@ for (let i = 0; i < max; i++) {
     // each card keeps a FIXED tilt / height / depth — they translate, never self-rotate
     const TILTS = [-6, 5, -4, 7, -7, 3, -5, 6, -3, 4];
     const YPCT = [0.32, 0.2, 0.48, 0.27, 0.42, 0.22, 0.5, 0.3, 0.4, 0.25];
-    const SCALES = [1.0, 1.1, 0.82, 0.92, 1.05, 0.78, 0.88, 1.08, 0.84, 0.96];
+    // Every card is the same size — only the tilt varies. (Set these back to
+    // a varied list to bring the depth-by-scale look back.)
+    const SCALES = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 
     const N = cards.length;
     // net shove ≈ PUSH_K / (1 - FRICTION) of the stroke length that crosses the
@@ -828,6 +838,10 @@ for (let i = 0; i < max; i++) {
     // ~40% it tears free, the conveyor freezes, and the letter UI appears —
     // the only explicit UI on the site, and only after the rip commits.
     // ---------------------------------------------------------------
+    // 撕纸 / page-peel temporarily hidden. Flip to true to bring it back —
+    // the markup, CSS and logic below are all left intact.
+    const PEEL_ON = false;
+
     const peelEl = document.getElementById('cv-peel') as HTMLElement;
     const holeEl = peelEl.querySelector('.cv-peel-hole') as HTMLElement;
     const frayEl = peelEl.querySelector('.cv-peel-fray') as HTMLElement;
@@ -1009,6 +1023,7 @@ for (let i = 0; i < max; i++) {
 
     // hover: curl the nearest corner; dwell in the inner zone to arm the grab
     const onHover = (e: PointerEvent) => {
+      if (!PEEL_ON) return;
       if (frozen || peeling || committing || drawing || dragCard || e.buttons) return;
       const { corner, dist } = nearestCorner(e.clientX, e.clientY);
       if (dist > HOVER_R) {
@@ -1037,6 +1052,7 @@ for (let i = 0; i < max; i++) {
 
     // pointerdown handler asks this first; returns true if it started a peel
     const ripTryGrab = (e: PointerEvent) => {
+      if (!PEEL_ON) return false;
       if (committing) return false;
       const { corner, dist } = nearestCorner(e.clientX, e.clientY);
       if (e.pointerType === 'touch') {
@@ -1101,6 +1117,7 @@ for (let i = 0; i < max; i++) {
     };
 
     const ripUp = () => {
+      if (!PEEL_ON) return;
       if (!peeling) return;
       if (peel >= COMMIT) commitRip();
       else settleBack();
@@ -1220,11 +1237,11 @@ for (let i = 0; i < max; i++) {
         const pad = w0 > 200 ? 22 : 16;
         o.fillStyle = '#0a0a0a';
         (o as any).letterSpacing = '2px';
-        o.font = '600 11px Urbanist, sans-serif';
+        o.font = '300 11px Onest, sans-serif';
         o.fillText((c.el.querySelector('.cv-kind')?.textContent ?? '').trim().toUpperCase(), pad, pad + 9);
         (o as any).letterSpacing = '0px';
         const ts = w0 > 200 ? 26 : 20;
-        o.font = `${ts}px Fraunces, Georgia, serif`;
+        o.font = `${ts}px "Gochi Hand", cursive`;
         const words = (c.el.querySelector('.cv-title')?.textContent ?? '').trim().split(/\s+/);
         const lines: string[] = [];
         let line = '';
@@ -1243,7 +1260,7 @@ for (let i = 0; i < max; i++) {
           ty += lh;
         }
         o.globalAlpha = 0.7;
-        o.font = '12px Urbanist, sans-serif';
+        o.font = '300 12px Onest, sans-serif';
         o.fillText((c.el.querySelector('.cv-meta')?.textContent ?? '').trim(), pad, h0 - pad + 4);
         o.globalAlpha = 1;
         const inkCv = c.el.querySelector('canvas.cv-ink') as HTMLCanvasElement | null;
@@ -1340,7 +1357,7 @@ for (let i = 0; i < max; i++) {
     // near a corner grabs it in ripTryGrab, touch-action:none keeps it ours)
 
     // ambient breeze: every so often, lift a random corner a touch, then settle
-    if (!reduce) {
+    if (!reduce && PEEL_ON) {
       const breeze = () => {
         if (!frozen && !peeling && !committing && !armed && peel < 0.01) {
           setCorner(CORNERS[Math.floor(Math.random() * CORNERS.length)]);
