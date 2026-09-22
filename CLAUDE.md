@@ -64,9 +64,11 @@ npm run preview
   left (its note is always emitted, empty until a page fills it client-side).
   `rough` draws the CTA's outline by hand and rings it on hover — opt-in,
   because it needs the page to define the `#rough-*` filters, which only
-  `/minimap` does. Its 64px height and 28px inset are tuned so the wordmark
-  sits on exactly the same pixel as the home conveyor's `.cv-tl` — changing
-  one means changing the other.
+  `/minimap` does. The wordmark is written in Gochi Hand (19px/400, no
+  tracking, no uppercasing — the face ships one weight), and its 64px height
+  and 28px inset are tuned so it sits on exactly the same pixel as the home
+  conveyor's `.cv-tl`: box top 22px on desktop, 15px under 640px. Changing one
+  means changing the other, and the numbers are measured, not chosen.
 - **`src/pages/404.astro`** — its own small shell (`Fonts` + `TopNav`, no
   layout). Two marks and nothing else: the number, ringed by one pen stroke
   that is drawn on arrival, and `back home`, under which a line is ruled on
