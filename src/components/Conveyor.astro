@@ -135,6 +135,15 @@ cards.splice(1, 0, ...toolCards);
   .cv-track {
     position: absolute;
     inset: 0;
+    /* The script places every card on its first frame; the markup itself has
+       no transform, so until then all the cards sit stacked in the top-left
+       corner. Landing here from a detail page flashed that pile, so the track
+       stays invisible until the first frame has laid it out. */
+    opacity: 0;
+  }
+  .cv-track.ready {
+    opacity: 1;
+    transition: opacity 0.2s ease-out;
   }
 
   /* pencil paper layer — sits UNDER the cards so frosted glass blurs it,
@@ -228,9 +237,12 @@ cards.splice(1, 0, ...toolCards);
     letter-spacing: 0.08em;
     color: #0a0a0a;
   }
+  /* the wordmark sits on the same pixel here as in components/TopNav.astro —
+     switching between the home and any page must not move it */
   .cv-tl {
     top: 26px;
     left: 28px;
+    line-height: 1;
     font-weight: 300;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -250,13 +262,16 @@ cards.splice(1, 0, ...toolCards);
   }
 
   @media (max-width: 640px) {
+    /* bigger on a phone: the card should own the screen, with the next one
+       peeking in at the right edge (spacing is derived from this in the
+       script below, so these numbers are the single source of truth) */
     .cv-card {
-      width: 188px;
-      height: 252px;
-      padding: 16px 16px 18px;
+      width: min(258px, 70vw);
+      height: min(344px, 93vw);
+      padding: 20px 20px 22px;
     }
     .cv-title {
-      font-size: 21px;
+      font-size: 25px;
     }
     .cv-kind {
       font-size: 10px;
@@ -480,8 +495,26 @@ cards.splice(1, 0, ...toolCards);
     const PUSH_K = 0.01;
     const TORQUE_K = 0.00004; // off-center hits spin the card slightly
     const FRICTION = 0.88; // per-frame velocity loss — the card slides, then stops
-    const MIN_SPACING = 380; // gap between cards on narrow screens
-    const CARDW = 300; // approx card footprint, for wrap/spacing math
+    // Card metrics are measured from the DOM, so the CSS breakpoint above is
+    // the only place the card size is written down.
+    let CARDW = 300; // card footprint incl. tilt overhang — used for wrap math
+    let CARDH = 320;
+    let MIN_SPACING = 380; // gap between cards when the viewport is narrow
+    const measure = () => {
+      const w = cards[0].offsetWidth || 240;
+      const h = cards[0].offsetHeight || 320;
+      CARDH = h;
+      // a card tilted up to 7° sticks out about h/2·sin7° on each side
+      CARDW = w + h * 0.13;
+      // On a phone the loop period must stay NARROWER than the screen, or the
+      // viewport can hold exactly one card and there is nothing to tell you the
+      // conveyor continues. w + 48 leaves a clean gap between the rectangles;
+      // the cap guarantees at least a 64px sliver of the next card.
+      MIN_SPACING =
+        window.innerWidth <= 640 ? Math.min(w + 48, window.innerWidth - 64) : 380;
+    };
+    measure();
+    window.addEventListener('resize', measure);
     let spacing = 400; // recomputed each frame from the viewport
     let W = N * spacing;
     const wrap = (v: number) => ((v % W) + W) % W;
@@ -504,6 +537,7 @@ cards.splice(1, 0, ...toolCards);
     let target = 0;
     let cur = 0;
     let hideHint = false;
+    let placed = false; // flips once the cards have been laid out at least once
 
     if (hint && window.matchMedia('(pointer: coarse)').matches)
       hint.textContent = 'two fingers scroll · draw ✎';
@@ -1402,12 +1436,18 @@ cards.splice(1, 0, ...toolCards);
         c.vy *= FRICTION;
         c.vr *= FRICTION;
         const x = wrap(c.i * spacing - cur) - CARDW + c.px; // exits left, re-enters right
-        const y = c.yPct * vh + c.py;
+        // taller cards on a short phone would hang off the bottom — keep the
+        // whole card on screen before the drag offset is added
+        const y = Math.min(c.yPct * vh, Math.max(24, vh - CARDH - 24)) + c.py;
         const tilt = c.tilt + c.pr;
         const scale = c.scale;
         c.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(
           1
         )}px) rotate(${tilt.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+      }
+      if (!placed) {
+        placed = true;
+        track.classList.add('ready'); // every card now has a real position
       }
       }
       renderInk();
