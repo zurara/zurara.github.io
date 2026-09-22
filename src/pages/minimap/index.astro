@@ -1,5 +1,10 @@
 ---
+import { statSync } from 'node:fs';
 import Fonts from '../../components/Fonts.astro';
+
+// Read the download's real size at build time — it was hardcoded and went stale
+// the first time the bundle changed.
+const zipKB = Math.round(statSync('public/minimap/mindmap.zip').size / 1024);
 
 // Landing page for Mindmap — the local-first mindmap tool.
 // Deliberately NOT using BaseLayout/global.css: this page wears the product's
@@ -58,7 +63,7 @@ const features = [
       <nav>
         <a class="btn" href="/minimap/mindmap.zip" download
           ><svg class="i" aria-hidden="true"><use href="#d-download" /></svg>Download<span
-            class="btn-sz">35 KB</span
+            class="btn-sz">{zipKB} KB</span
           ></a
         >
       </nav>
@@ -66,8 +71,7 @@ const features = [
 
     <main>
       <section class="hero">
-        <p class="eyebrow">Minimap</p>
-        <h1>Minimal <em>Mind Mapping</em></h1>
+        <h1>Minimap <em>is minimal mind mapping</em></h1>
         <p class="lede">A mindmap tool can't get any lighter — it's just an HTML file.</p>
       </section>
 
@@ -117,8 +121,14 @@ const features = [
     </main>
 
     <footer class="foot">
-      <a href="/">← zurara</a>
-      <span>Icons by <a class="u" href="https://khushmeen.com/icons.html" target="_blank" rel="noopener">Khushmeen</a></span>
+      <p class="foot-note">
+        Minimap is just a quick side tool built while working. Download it and change it into
+        whatever you need.
+      </p>
+      <div class="foot-row">
+        <a href="/">← All works</a>
+        <span>Icons by <a class="u" href="https://khushmeen.com/icons.html" target="_blank" rel="noopener">Khushmeen</a></span>
+      </div>
     </footer>
 
     <style is:global>
@@ -249,21 +259,9 @@ const features = [
         padding: clamp(48px, 9vw, 104px) 0 clamp(32px, 6vw, 56px);
         text-align: center;
       }
-      /* a nameplate above the title, in the display face. Gochi Hand ships one
-         weight — asking for more would have the browser fake it. */
-      .eyebrow {
-        font-family: var(--font-display);
-        font-weight: 400;
-        font-size: 15px;
-        letter-spacing: 0.22em;
-        text-indent: 0.22em;
-        text-transform: uppercase;
-        color: var(--ink-3);
-        margin-bottom: 18px;
-      }
       h1 {
         font-family: var(--display);
-        font-size: clamp(2.6rem, 8vw, 5rem);
+        font-size: clamp(3.4rem, 14vw, 5rem);
         line-height: 1.04;
         letter-spacing: -0.02em;
         font-weight: 400;
@@ -480,16 +478,25 @@ const features = [
       }
 
       .foot {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 10px;
         max-width: 1120px;
         margin-inline: auto;
         padding: 22px clamp(16px, 4vw, 48px) 40px;
         border-top: 1px solid var(--rule);
         font-size: 13px;
         color: var(--ink-3);
+      }
+      /* an aside in the author's own voice, so it reads before the credits */
+      .foot-note {
+        margin-bottom: 14px;
+        max-width: 62ch;
+        line-height: 1.7;
+        color: var(--ink-2);
+      }
+      .foot-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
       }
       .foot a:hover {
         color: var(--ink);

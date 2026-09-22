@@ -12,7 +12,8 @@ const fmtDate = (d: Date) =>
   d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
 
 type Card = {
-  kind: 'Project' | 'Article' | 'Tool';
+  /** the small label above the title — display copy, free text */
+  kind: string;
   title: string;
   meta: string;
   href: string;
@@ -42,9 +43,9 @@ const articleCards: Card[] = articles.map((e) => ({
 // by hand. `external: false` keeps them in the same tab — they are our pages.
 const toolCards: Card[] = [
   {
-    kind: 'Tool',
-    title: 'Minimap',
-    meta: 'Mindmap tool',
+    kind: 'Quick side tool',
+    title: 'Minimap is minimal mind mapping',
+    meta: 'Sep 2026',
     href: '/minimap',
     external: false,
     tags: ['Local-first', 'Keyboard'],
