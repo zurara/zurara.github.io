@@ -7,11 +7,11 @@ import Fonts from '../../components/Fonts.astro';
 // the first time the bundle changed.
 const zipKB = Math.round(statSync('public/minimap/mindmap.zip').size / 1024);
 
-// Landing page for Mindmap — the local-first mindmap tool.
+// Landing page for Minimap — the local-first mindmap tool.
 // Deliberately NOT using BaseLayout/global.css: this page wears the product's
 // own visual language (neutral B&W + the accent palette + system sans), so it
 // reads as an extension of the tool rather than of the portfolio chrome.
-const title = 'Mindmap — a local, keyboard-first mindmap tool';
+const title = 'Minimap - A super mini mindmap tool.';
 const description =
   'One HTML file. No account, no server, no network. Keyboard-first mindmapping with markdown notes, cross-branch connections, status tags, and Map/Outline views.';
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
