@@ -59,9 +59,14 @@ npm run preview
     Top bar comes from `components/TopNav.astro`.
 - **`components/TopNav.astro`** — the one top bar for every scrolling page
   (article, work, writing, minimap, 404): wordmark left, OPTIONAL `cta` right
-  (`{label, href, note?, icon?, download?, external?}`). Its 64px height and
-  28px inset are tuned so the wordmark sits on exactly the same pixel as the
-  home conveyor's `.cv-tl` — changing one means changing the other.
+  (`{label, href, note?, icon?, download?, external?}`), plus an OPTIONAL
+  `secondary` of the same shape that renders as a quieter link to the CTA's
+  left (its note is always emitted, empty until a page fills it client-side).
+  `rough` draws the CTA's outline by hand and rings it on hover — opt-in,
+  because it needs the page to define the `#rough-*` filters, which only
+  `/minimap` does. Its 64px height and 28px inset are tuned so the wordmark
+  sits on exactly the same pixel as the home conveyor's `.cv-tl` — changing
+  one means changing the other.
 - **`src/pages/404.astro`** — its own small shell (`Fonts` + `TopNav`, no
   layout). Two marks and nothing else: the number, ringed by one pen stroke
   that is drawn on arrival, and `back home`, under which a line is ruled on

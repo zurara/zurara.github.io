@@ -16,6 +16,13 @@ interface Cta {
   download?: boolean;
   external?: boolean;
 }
+import { ringPath } from '../lib/ring';
+
+// the ring is drawn in this box and stretched to the button; the stroke stays
+// even because it is painted with vector-effect: non-scaling-stroke
+const RW = 160;
+const RH = 44;
+
 interface Props {
   backHref?: string;
   backLabel?: string;
@@ -24,8 +31,11 @@ interface Props {
       note is always rendered (empty until something fills it), so a page can
       update the number client-side without the bar reflowing. */
   secondary?: Cta;
+  /** draw the CTA's outline by hand instead of ruling it. Opt-in, because it
+      needs the page to define the #rough-* filters — only /minimap does. */
+  rough?: boolean;
 }
-const { backHref = '/', backLabel = 'zurara', cta, secondary } = Astro.props;
+const { backHref = '/', backLabel = 'zurara', cta, secondary, rough } = Astro.props;
 ---
 
 <header class="top">
@@ -58,11 +68,22 @@ const { backHref = '/', backLabel = 'zurara', cta, secondary } = Astro.props;
         {cta && (
         <a
           class="btn"
+          data-rough={rough ? '' : undefined}
           href={cta.href}
           download={cta.download}
           target={cta.external ? '_blank' : undefined}
           rel={cta.external ? 'noopener' : undefined}
         >
+          {rough && (
+            <svg
+              class="btn-ring"
+              viewBox={`0 0 ${RW} ${RH}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path d={ringPath(cta.label, RW, RH)} pathLength="1" />
+            </svg>
+          )}
           {cta.icon && (
             <svg class="i" aria-hidden="true">
               <use href={`#${cta.icon}`} />
@@ -152,6 +173,45 @@ const { backHref = '/', backLabel = 'zurara', cta, secondary } = Astro.props;
   .btn:hover {
     border-color: var(--ink, #0a0a0a);
     transform: translateY(-1px);
+  }
+  /* the drawn outline: the ruled border steps aside and the stroke is laid
+     over the top, where the header's own background cannot bury it */
+  .btn[data-rough],
+  .btn[data-rough]:hover {
+    position: relative;
+    border-color: transparent;
+    /* hovering goes over the line again rather than lifting the button */
+    transform: none;
+  }
+  .btn[data-rough]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    filter: url(#rough-b);
+    pointer-events: none;
+  }
+  /* hovering rings the button by hand — one pass of the pen, the same gesture
+     the 404 uses on its way back home. The button never moves. */
+  .btn-ring {
+    position: absolute;
+    inset: -4px -6px;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.42s cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+  .btn[data-rough]:hover .btn-ring,
+  .btn[data-rough]:focus-visible .btn-ring {
+    stroke-dashoffset: 0;
   }
   /* the secondary never competes with the CTA: no outline until hover */
   .btn.ghost {
