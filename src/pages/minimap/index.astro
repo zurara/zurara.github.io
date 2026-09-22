@@ -20,11 +20,11 @@ const features = [
   // 4 singles + two wides = 8 column-units over 4 columns: two rows that tile
   // exactly, one wide closing the first row and one opening the second.
   { icon: 'tree',   title: 'Map or Outline', body: 'Two views of one tree.' },
-  { icon: 'note',   title: 'Markdown notes', body: 'Styled as you type.' },
+  { icon: 'note',   title: 'Free format', body: 'Import and export freely as JSON, Markdown, PNG, or SVG.' },
   { span: 'wide', icon: 'arrow-right', title: 'Connect and focus', body: 'Arrow-link any nodes \u2014 click one to dim everything else.' },
   { span: 'wide', icon: 'tag', title: 'Status on any node', body: 'To do, in progress, blocked, done \u2014 or your own.', demo: 'status' },
-  { icon: 'shield', title: 'Local-first',    body: 'No account, no server, no network call.' },
-  { icon: 'bot',    title: 'Let your agent build', body: 'One file it can read and edit. No MCP, no keys.' },
+  { icon: 'shield', title: 'Local-first',    body: 'No accounts, no servers. Your data stays safe in your browser.' },
+  { icon: 'bot',    title: 'Let your agent build', body: 'Skip MCP. It is just a single HTML file that is completely open to edit.' },
 ];
 
 // The download also carries three agent skills + the markdown->JSON converters.
@@ -92,7 +92,7 @@ const skills = [
     <main>
       <section class="hero">
         <h1
-          >Minimap <em>is minimal<br class="h1-br" /> mind mapping</em><svg
+          >Minimap <em>is a minimal<br class="h1-br" /> mind mapping</em><svg
             class="h1-hand"
             aria-hidden="true"
             ><use href="#d-ok" /></svg
@@ -263,12 +263,12 @@ const skills = [
         padding: clamp(48px, 9vw, 104px) 0 clamp(32px, 6vw, 56px);
         text-align: center;
       }
-      /* the forced break only applies once "Minimap is minimal" fits one line;
-         below that the headline wraps on its own */
+      /* the forced break only applies once "Minimap is a minimal" fits one
+         line; below that the headline wraps on its own */
       .h1-br {
         display: none;
       }
-      @media (min-width: 700px) {
+      @media (min-width: 740px) {
         .h1-br {
           display: inline;
         }
