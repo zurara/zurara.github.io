@@ -249,17 +249,18 @@ const skills = [
             <span class="skills-dl-size">{zipKB} KB</span>
           </a>
         </p>
+        <p class="dl-note">
+          Feel free to download it and update it into whatever you need — it is one HTML file
+          under an MIT licence, and it was only ever a side tool built while working. <svg
+            class="i dl-smile"
+            aria-hidden="true"><use href="#d-smile" /></svg
+          >
+        </p>
       </section>
 
     </main>
 
     <footer class="foot">
-      <p class="foot-note">
-        Minimap is just a quick side tool built while working. Download it and change it into
-        whatever you need. <svg class="i foot-smile" aria-hidden="true"
-          ><use href="#d-smile" /></svg
-        >
-      </p>
       <div class="foot-row">
         <a href="/">← All works</a>
         <span>Icons by <a class="u" href="https://khushmeen.com/icons.html" target="_blank" rel="noopener">Khushmeen</a></span>
@@ -776,19 +777,6 @@ const skills = [
         color: var(--ink-3);
       }
       /* the doodle smiley closes the aside — sized off the line it sits in */
-      .foot-smile {
-        width: 1.15em;
-        height: 1.15em;
-        margin-left: 0.15em;
-        vertical-align: -0.24em;
-      }
-      /* an aside in the author's own voice, so it reads before the credits */
-      .foot-note {
-        margin-bottom: 14px;
-        max-width: 62ch;
-        line-height: 1.7;
-        color: var(--ink-2);
-      }
       .foot-row {
         display: flex;
         flex-wrap: wrap;
@@ -895,6 +883,22 @@ const skills = [
       }
       .skills-dl:hover .skills-dl-size {
         color: var(--ink-2);
+      }
+
+      /* the aside belongs with the offer it is about, not with the credits */
+      .dl-note {
+        margin: 16px auto 0;
+        max-width: 56ch;
+        text-align: center;
+        color: var(--ink-3);
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .dl-smile {
+        width: 1.15em;
+        height: 1.15em;
+        margin-left: 0.15em;
+        vertical-align: -0.24em;
       }
 
       /* ---------- responsive ---------- */
