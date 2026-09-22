@@ -1,16 +1,25 @@
 ---
+import Tags from '../../components/Tags.astro';
+import BottomNav from '../../components/BottomNav.astro';
 import { getCollection, render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 
 export async function getStaticPaths() {
-  const entries = await getCollection(
-    'projects',
-    ({ data }) => !data.draft && !data.externalUrl
-  );
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  // same order as the home conveyor, so "next" means the next card along
+  const entries = (
+    await getCollection('projects', ({ data }) => !data.draft && !data.externalUrl)
+  ).sort((a, b) => a.data.order - b.data.order || b.data.year.localeCompare(a.data.year));
+  return entries.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: {
+      entry,
+      // the track loops, so the last project points back at the first
+      next: entries.length > 1 ? entries[(i + 1) % entries.length] : null,
+    },
+  }));
 }
 
-const { entry } = Astro.props;
+const { entry, next } = Astro.props;
 const { Content } = await render(entry);
 const { data } = entry;
 ---
@@ -18,22 +27,16 @@ const { data } = entry;
 <ArticleLayout title={`${data.title} — zurara`} description={data.summary}>
   <article class="detail">
     <header class="detail-head">
-      <span class="detail-kind">Project</span>
-      <div class="work-meta">
+      <div class="detail-eyebrow">
+        <span class="detail-kind">Project</span>
+        {data.year && <span class="sep" aria-hidden="true">·</span>}
         {data.year && <span class="work-year">{data.year}</span>}
+        {data.role && <span class="sep" aria-hidden="true">·</span>}
         {data.role && <span class="work-kind">{data.role}</span>}
       </div>
       <h1 class="detail-title">{data.title}</h1>
       {data.summary && <p class="detail-summary">{data.summary}</p>}
-      {
-        data.tags.length > 0 && (
-          <ul class="tags" aria-label="Tags">
-            {data.tags.map((t) => (
-              <li>{t}</li>
-            ))}
-          </ul>
-        )
-      }
+      {data.tags.length > 0 && <Tags tags={data.tags} />}
     </header>
 
     <div class="detail-media">
@@ -45,7 +48,5 @@ const { data } = entry;
     </div>
   </article>
 
-  <footer class="detail-foot">
-    <a class="back-link" href="/">← Back to index</a>
-  </footer>
+  <BottomNav next={next && { href: `/work/${next.id}` }} />
 </ArticleLayout>

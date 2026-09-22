@@ -1,16 +1,26 @@
 ---
+import Tags from '../../components/Tags.astro';
+import BottomNav from '../../components/BottomNav.astro';
 import { getCollection, render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 
 export async function getStaticPaths() {
-  const entries = await getCollection(
-    'articles',
-    ({ data }) => !data.draft && !data.externalUrl
-  );
-  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  // newest first — the same order the home conveyor uses, so "next" means the
+  // next piece along that track
+  const entries = (
+    await getCollection('articles', ({ data }) => !data.draft && !data.externalUrl)
+  ).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  return entries.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: {
+      entry,
+      // the track loops, so the last piece points back at the first
+      next: entries.length > 1 ? entries[(i + 1) % entries.length] : null,
+    },
+  }));
 }
 
-const { entry } = Astro.props;
+const { entry, next } = Astro.props;
 const { Content } = await render(entry);
 const { data } = entry;
 const fmt = (d: Date) =>
@@ -20,19 +30,14 @@ const fmt = (d: Date) =>
 <ArticleLayout title={`${data.title} — zurara`} description={data.excerpt}>
   <article class="detail">
     <header class="detail-head">
-      <span class="detail-kind">Article</span>
-      <span class="post-date">{fmt(data.date)}</span>
+      <div class="detail-eyebrow">
+        <span class="detail-kind">Article</span>
+        <span class="sep" aria-hidden="true">·</span>
+        <span class="post-date">{fmt(data.date)}</span>
+      </div>
       <h1 class="detail-title">{data.title}</h1>
       {data.excerpt && <p class="detail-summary">{data.excerpt}</p>}
-      {
-        data.tags.length > 0 && (
-          <ul class="tags" aria-label="Tags">
-            {data.tags.map((t) => (
-              <li>{t}</li>
-            ))}
-          </ul>
-        )
-      }
+      {data.tags.length > 0 && <Tags tags={data.tags} />}
     </header>
 
     {
@@ -48,7 +53,5 @@ const fmt = (d: Date) =>
     </div>
   </article>
 
-  <footer class="detail-foot">
-    <a class="back-link" href="/">← Back to index</a>
-  </footer>
+  <BottomNav next={next && { href: `/writing/${next.id}` }} />
 </ArticleLayout>

@@ -1,0 +1,150 @@
+---
+// The site's one top nav — the bar the /minimap page introduced, extracted so
+// every scrolling page wears the same chrome: wordmark on the left, an
+// OPTIONAL call to action on the right. Pages that have nothing to offer just
+// render the wordmark, and the bar's height and type never drift between pages.
+//
+// The conveyor home is deliberately NOT a consumer: it has no scroll, and its
+// own fixed chrome is part of the card-table illusion.
+interface Cta {
+  label: string;
+  href: string;
+  /** small muted note trailing the label, e.g. a file size */
+  note?: string;
+  /** id of a sprite <symbol> already present on the page, e.g. 'd-download' */
+  icon?: string;
+  download?: boolean;
+  external?: boolean;
+}
+interface Props {
+  backHref?: string;
+  backLabel?: string;
+  cta?: Cta;
+}
+const { backHref = '/', backLabel = 'zurara', cta } = Astro.props;
+---
+
+<header class="top">
+  <a class="back" href={backHref}>{backLabel}</a>
+  {
+    cta && (
+      <nav>
+        <a
+          class="btn"
+          href={cta.href}
+          download={cta.download}
+          target={cta.external ? '_blank' : undefined}
+          rel={cta.external ? 'noopener' : undefined}
+        >
+          {cta.icon && (
+            <svg class="i" aria-hidden="true">
+              <use href={`#${cta.icon}`} />
+            </svg>
+          )}
+          {cta.label}
+          {cta.note && <span class="btn-sz">{cta.note}</span>}
+        </a>
+      </nav>
+    )
+  }
+</header>
+
+<style>
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* the shell may centre its children (ArticleLayout does) — the bar never
+       shrinks to its contents */
+    width: 100%;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    /* The wordmark must land on exactly the same pixel as the home page's
+       fixed chrome, so navigating never nudges it: 28px from the left, and a
+       64px bar centres a 12px line at y=32 — the same as .cv-tl's top:26px.
+       Height stays fixed whether or not the page has a CTA. */
+    min-height: 64px;
+    padding: 0 28px;
+    background: color-mix(in srgb, var(--paper, #fff) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule, #ececec);
+  }
+  .top a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* same wordmark as the home page: light, tracked, uppercase */
+  .back {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 300;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink, #0a0a0a);
+  }
+  .back:hover {
+    color: var(--ink-2, #6a6a6a);
+  }
+  .top nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 15px;
+    border: 1px solid var(--rule-2, #0a0a0a);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition:
+      border-color 0.15s,
+      background 0.15s,
+      transform 0.15s;
+  }
+  /* the weight rides in the button so the page need not say it twice */
+  .btn-sz {
+    color: var(--ink-3, #9a9a9a);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+  .btn:hover .btn-sz {
+    color: inherit;
+    opacity: 0.6;
+  }
+  .btn:hover {
+    border-color: var(--ink, #0a0a0a);
+    transform: translateY(-1px);
+  }
+  .top .i {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    flex: 0 0 auto;
+  }
+
+  /* same breakpoint as the home conveyor, so both switch together */
+  @media (max-width: 640px) {
+    .top {
+      min-height: 47px; /* centres an 11px line at y=23.5, matching .cv-tl */
+      padding: 0 18px;
+    }
+    .back {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+    .btn {
+      padding: 7px 13px;
+      font-size: 13px;
+    }
+  }
+</style>

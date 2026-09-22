@@ -56,16 +56,24 @@ npm run preview
   → `ArticleLayout`.
   - `layouts/ArticleLayout.astro` — scrolling B&W content shell. Global styles
     for `.detail` / `.prose` / tags / grayscale media / Fraunces headings.
-    Fixed topbar (wordmark + "← Index").
+    Top bar comes from `components/TopNav.astro`.
+- **`components/TopNav.astro`** — the one top bar for every scrolling page
+  (article, work, writing, minimap): wordmark left, OPTIONAL `cta` right
+  (`{label, href, note?, icon?, download?, external?}`). Its 64px height and
+  28px inset are tuned so the wordmark sits on exactly the same pixel as the
+  home conveyor's `.cv-tl` — changing one means changing the other.
 
 ## Style system
 
 Strict **black `#0a0a0a` on white `#fff`** across the active pages. One
-deliberate exception: the article-page highlighter ink (`#f7ec2e`) — the only
-color on the site, and it only appears when a visitor drags the marker. Media
-forced to grayscale. Handwritten moments (the note under the ripped page) use
-the Caveat font. Tags = 1px black-border chips. Titles &
-headings = Fraunces; body = Urbanist. New pages should use
+deliberate exception, **marker orange `#ff7a1a`**, used in exactly two places:
+the article-page highlighter ink (a hand-drawn wave UNDER the line, one pass,
+not a filled band, and only when a visitor drags the pen) and the prose list
+marks (hand-inked bullet blobs and Gochi-Hand numbers, all hung from one axis).
+Media forced to grayscale. Handwritten moments (the note under the ripped page)
+use the Caveat font. Tags = the label in the display hand with a single pen
+stroke ringed round it (`components/Tags.astro`). Display/headings = Gochi Hand
+(`--font-display`); body = Onest (`--font-body`). New pages should use
 `MinimalLayout` / `ArticleLayout` — not the legacy `BaseLayout`.
 
 ## ⚠️ Legacy / orphaned — do NOT assume these are live

@@ -1,0 +1,129 @@
+---
+// A tag is a word in the handwriting face with a single pen stroke circled
+// round it — one continuous line, overshooting where it closes, the way you
+// actually ring a word on paper.
+//
+// The ring is generated here, at build time, from a seed made of the label, so
+// a tag's wobble is stable across loads but no two tags are ringed alike.
+interface Props {
+  tags: string[];
+  label?: string;
+}
+const { tags, label = 'Tags' } = Astro.props;
+
+const seeded = (s: number) => () => {
+  s = (s + 0x6d2b79f5) | 0;
+  let t = Math.imul(s ^ (s >>> 15), 1 | s);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+// drawn in this box and stretched to the chip — the stroke stays even because
+// the path is painted with vector-effect: non-scaling-stroke
+const W = 100;
+const H = 44;
+
+const ring = (text: string) => {
+  let h = 2166136261;
+  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const rnd = seeded(h);
+
+  const cx = W / 2 + (rnd() * 2 - 1) * 1.5;
+  const cy = H / 2 + (rnd() * 2 - 1) * 1;
+  const rx = W / 2 - 2;
+  const ry = H / 2 - 2;
+  // where the pen lands, and how far past that point it runs before lifting
+  const start = -1.9 + rnd() * 0.6;
+  const over = 0.3 + rnd() * 0.45;
+  // enough wobble to read as a hand, little enough to still read as a circle
+  const wob1 = 0.03 + rnd() * 0.02;
+  const wob2 = 0.016 + rnd() * 0.012;
+  const ph1 = rnd() * Math.PI * 2;
+  const ph2 = rnd() * Math.PI * 2;
+  // the hand tightens as it comes round — the ring closes slightly inside
+  const close = 0.04 + rnd() * 0.03;
+
+  const steps = 40;
+  const end = start + Math.PI * 2 + over;
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= steps; i++) {
+    const p = i / steps;
+    const a = start + (end - start) * p;
+    const k = 1 + wob1 * Math.sin(3 * a + ph1) + wob2 * Math.sin(5 * a + ph2) - close * p;
+    pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]);
+  }
+
+  // Catmull-Rom through the samples, emitted as cubics — the line curves
+  // through each point instead of cornering at it
+  const at = (i: number) => pts[Math.max(0, Math.min(pts.length - 1, i))];
+  let d = `M${pts[0][0].toFixed(2)} ${pts[0][1].toFixed(2)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = at(i - 1);
+    const [x1, y1] = at(i);
+    const [x2, y2] = at(i + 1);
+    const [x3, y3] = at(i + 2);
+    d +=
+      `C${(x1 + (x2 - x0) / 6).toFixed(2)} ${(y1 + (y2 - y0) / 6).toFixed(2)} ` +
+      `${(x2 - (x3 - x1) / 6).toFixed(2)} ${(y2 - (y3 - y1) / 6).toFixed(2)} ` +
+      `${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  }
+  return d;
+};
+---
+
+<ul class="tags" aria-label={label}>
+  {
+    tags.map((t) => (
+      <li>
+        <svg class="ring" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+          <path d={ring(t)} />
+        </svg>
+        <span>{t}</span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .tags li {
+    position: relative;
+    /* a short label like "UI" would otherwise get a ring half the size of its
+       neighbours — every ring gets at least this much to go round */
+    min-width: 72px;
+    text-align: center;
+    padding: 3px 10px 4px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    /* set at the prose subheading size — same face, same scale */
+    font-size: 22px;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+  /* the ring needs room to overshoot the word it circles */
+  .ring {
+    position: absolute;
+    inset: -2px -4px;
+    overflow: visible;
+    fill: none;
+    stroke: var(--line, #0a0a0a);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .tags li {
+      font-size: 19px;
+    }
+  }
+</style>

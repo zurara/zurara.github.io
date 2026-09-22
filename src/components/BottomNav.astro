@@ -1,0 +1,61 @@
+---
+// The bar that closes a page — the same shell as components/TopNav.astro
+// (full-bleed, 64px tall, 28px inset, 12px tracked caps), ruled off along its
+// TOP edge instead of its bottom. Back on the left, what's next on the right.
+interface Props {
+  backHref?: string;
+  backLabel?: string;
+  next?: { href: string; label?: string } | null;
+}
+const { backHref = '/', backLabel = '← Back to index', next } = Astro.props;
+---
+
+<footer class="foot">
+  <a class="foot-link" href={backHref}>{backLabel}</a>
+  {next && <a class="foot-link" href={next.href}>{next.label ?? 'Next'} →</a>}
+</footer>
+
+<style>
+  .foot {
+    /* the shell centres its children — the bar spans the page regardless */
+    width: 100%;
+    align-self: stretch;
+    /* on a short page the bar falls to the bottom instead of floating */
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    /* same height and inset as TopNav, so the page is framed evenly */
+    min-height: 64px;
+    padding: 0 28px;
+    border-top: 1px solid var(--rule, #ececec);
+  }
+  /* set like the wordmark: light, tracked, uppercase, never underlined */
+  .foot-link {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 300;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink, #0a0a0a);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+  .foot-link:hover {
+    opacity: 0.55;
+  }
+  /* same breakpoint as the rest of the chrome */
+  @media (max-width: 640px) {
+    .foot {
+      min-height: 47px;
+      padding: 0 18px;
+    }
+    .foot-link {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+  }
+</style>

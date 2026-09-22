@@ -1,14 +1,25 @@
 ---
+import TopNav from '../components/TopNav.astro';
 import Fonts from '../components/Fonts.astro';
 
 interface Props {
   title?: string;
   description?: string;
+  /** optional call to action in the top bar — see components/TopNav.astro */
+  cta?: {
+    label: string;
+    href: string;
+    note?: string;
+    icon?: string;
+    download?: boolean;
+    external?: boolean;
+  };
 }
 
 const {
   title = 'zurara',
   description = '',
+  cta,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -27,7 +38,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta property="og:type" content="article" />
     <meta property="og:url" content={canonical} />
 
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <Fonts />
 
     <style is:global>
@@ -70,68 +82,41 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       }
 
       /* ---- fixed minimal chrome ---- */
-      .topbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 10;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 22px 28px;
-        background: linear-gradient(var(--paper) 60%, transparent);
-        font-size: 12px;
-        letter-spacing: 0.08em;
-      }
-      .topbar a {
-        text-decoration: none;
-      }
-      .topbar .wordmark {
-        font-weight: 600;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-      .back-link {
-        text-decoration: none;
-        transition: opacity 0.2s ease;
-      }
-      .back-link:hover {
-        opacity: 0.55;
-      }
-
       /* ---- article column ---- */
       .detail {
         width: 100%;
         max-width: var(--measure);
         margin: 0 auto;
-        padding: 132px 28px 140px;
+        padding: 72px 28px 140px;
       }
       .detail-head {
         margin-bottom: 40px;
       }
-      .detail-kind {
-        display: inline-block;
+      /* kicker and date sit on ONE line, set identically — they are the same
+         kind of information, so they read as one label */
+      .detail-eyebrow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 18px;
+        /* set exactly like the card kicker on the home conveyor (.cv-kind):
+           11px, light, widely tracked caps */
         font-size: 11px;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        font-weight: 600;
-        margin-bottom: 22px;
+        font-weight: 300;
       }
-      .work-meta {
-        display: flex;
-        gap: 16px;
-        font-size: 13px;
-        letter-spacing: 0.06em;
-        color: var(--muted);
-        margin-bottom: 14px;
+      .detail-eyebrow .sep {
+        opacity: 0.35;
       }
-      .post-date {
-        display: block;
-        font-size: 13px;
-        letter-spacing: 0.06em;
-        color: var(--muted);
-        margin-bottom: 14px;
+      .detail-kind,
+      .post-date,
+      .work-year,
+      .work-kind {
+        font: inherit;
+        letter-spacing: inherit;
+        color: inherit;
       }
       .detail-title {
         font-family: var(--font-display);
@@ -141,26 +126,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         margin: 0 0 22px;
       }
       .detail-summary {
-        font-size: 21px;
-        line-height: 1.5;
+        /* the lede reads at body size — it is set apart by colour, not scale */
+        font-size: 18px;
+        line-height: 1.7;
         color: #333;
         margin: 0 0 22px;
       }
-      .tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .tags li {
-        border: 1px solid var(--line);
-        padding: 4px 11px;
-        font-size: 11px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
+      /* tag chips live in components/Tags.astro */
 
       /* cover — kept monochrome to match the index */
       .detail-media {
@@ -233,9 +205,55 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         font-size: 21px;
         color: #222;
       }
+      /* hand-inked list markers: the bullets are little pen blobs (three of
+         them, cycled, so no two in a row match) and the numbers are written in
+         the display hand rather than set in the body face */
       .prose ul,
       .prose ol {
-        padding-left: 1.3em;
+        list-style: none;
+        padding-left: 1.6em;
+      }
+      .prose li {
+        position: relative;
+      }
+      .prose ul > li::before {
+        content: '';
+        position: absolute;
+        /* every mark hangs from the same axis — the hand is in the shape of
+           the mark, not in where it lands */
+        left: -1.25em;
+        top: 0.62em;
+        width: 8px;
+        height: 8px;
+        /* the blob is a MASK, so the colour lives in CSS, not in the data URI */
+        background: var(--mark, #ff7a1a);
+        -webkit-mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M10.82 7.12C10.72 7.58 10.00 8.09 9.48 8.29C8.97 8.49 8.14 8.16 7.72 8.32C7.30 8.48 7.29 8.93 6.97 9.25C6.64 9.57 6.22 10.08 5.77 10.23C5.31 10.38 4.67 10.35 4.25 10.15C3.82 9.95 3.53 9.40 3.21 9.03C2.89 8.65 2.48 8.33 2.33 7.90C2.19 7.47 2.24 6.90 2.33 6.47C2.43 6.03 2.78 5.69 2.88 5.28C2.99 4.87 2.92 4.53 2.96 4.00C2.99 3.47 2.82 2.51 3.10 2.09C3.38 1.66 4.12 1.44 4.64 1.44C5.16 1.45 5.75 1.92 6.22 2.13C6.68 2.33 7.02 2.48 7.41 2.67C7.79 2.85 8.20 2.98 8.55 3.24C8.90 3.49 9.25 3.81 9.51 4.18C9.76 4.56 9.85 4.99 10.07 5.48C10.29 5.97 10.92 6.65 10.82 7.12Z' fill='%23000'/></svg>") no-repeat center / contain;
+        mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M10.82 7.12C10.72 7.58 10.00 8.09 9.48 8.29C8.97 8.49 8.14 8.16 7.72 8.32C7.30 8.48 7.29 8.93 6.97 9.25C6.64 9.57 6.22 10.08 5.77 10.23C5.31 10.38 4.67 10.35 4.25 10.15C3.82 9.95 3.53 9.40 3.21 9.03C2.89 8.65 2.48 8.33 2.33 7.90C2.19 7.47 2.24 6.90 2.33 6.47C2.43 6.03 2.78 5.69 2.88 5.28C2.99 4.87 2.92 4.53 2.96 4.00C2.99 3.47 2.82 2.51 3.10 2.09C3.38 1.66 4.12 1.44 4.64 1.44C5.16 1.45 5.75 1.92 6.22 2.13C6.68 2.33 7.02 2.48 7.41 2.67C7.79 2.85 8.20 2.98 8.55 3.24C8.90 3.49 9.25 3.81 9.51 4.18C9.76 4.56 9.85 4.99 10.07 5.48C10.29 5.97 10.92 6.65 10.82 7.12Z' fill='%23000'/></svg>") no-repeat center / contain;
+      }
+      .prose ul > li:nth-child(3n + 2)::before {
+        -webkit-mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M5.90 8.96C5.46 8.90 5.06 9.47 4.61 9.51C4.16 9.55 3.56 9.45 3.19 9.19C2.82 8.94 2.59 8.41 2.38 7.97C2.17 7.54 1.98 7.06 1.91 6.59C1.85 6.12 1.77 5.53 1.98 5.13C2.18 4.72 2.78 4.42 3.15 4.18C3.53 3.94 3.95 4.00 4.23 3.68C4.51 3.37 4.50 2.72 4.83 2.29C5.15 1.85 5.71 1.12 6.17 1.07C6.63 1.02 7.22 1.61 7.59 1.98C7.96 2.35 8.14 2.90 8.39 3.29C8.63 3.68 8.89 3.97 9.05 4.34C9.22 4.71 9.33 5.11 9.39 5.51C9.45 5.91 9.35 6.26 9.41 6.74C9.46 7.22 9.80 7.86 9.73 8.39C9.65 8.91 9.37 9.63 8.95 9.87C8.53 10.12 7.72 9.99 7.21 9.84C6.70 9.68 6.33 9.01 5.90 8.96Z' fill='%23000'/></svg>");
+        mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M5.90 8.96C5.46 8.90 5.06 9.47 4.61 9.51C4.16 9.55 3.56 9.45 3.19 9.19C2.82 8.94 2.59 8.41 2.38 7.97C2.17 7.54 1.98 7.06 1.91 6.59C1.85 6.12 1.77 5.53 1.98 5.13C2.18 4.72 2.78 4.42 3.15 4.18C3.53 3.94 3.95 4.00 4.23 3.68C4.51 3.37 4.50 2.72 4.83 2.29C5.15 1.85 5.71 1.12 6.17 1.07C6.63 1.02 7.22 1.61 7.59 1.98C7.96 2.35 8.14 2.90 8.39 3.29C8.63 3.68 8.89 3.97 9.05 4.34C9.22 4.71 9.33 5.11 9.39 5.51C9.45 5.91 9.35 6.26 9.41 6.74C9.46 7.22 9.80 7.86 9.73 8.39C9.65 8.91 9.37 9.63 8.95 9.87C8.53 10.12 7.72 9.99 7.21 9.84C6.70 9.68 6.33 9.01 5.90 8.96Z' fill='%23000'/></svg>");
+      }
+      .prose ul > li:nth-child(3n)::before {
+        -webkit-mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M8.24 8.66C7.71 8.79 7.46 8.85 7.07 9.11C6.67 9.38 6.32 10.08 5.88 10.26C5.43 10.43 4.85 10.28 4.37 10.15C3.89 10.03 3.42 9.79 3.00 9.51C2.59 9.22 2.10 8.88 1.90 8.44C1.70 8.00 1.67 7.35 1.79 6.87C1.91 6.38 2.40 5.93 2.62 5.52C2.83 5.11 3.00 4.90 3.08 4.40C3.15 3.90 2.85 3.05 3.06 2.51C3.27 1.97 3.83 1.28 4.34 1.17C4.85 1.05 5.62 1.59 6.12 1.82C6.62 2.05 6.96 2.33 7.36 2.54C7.76 2.74 8.20 2.80 8.52 3.05C8.83 3.31 9.03 3.71 9.25 4.07C9.47 4.43 9.54 4.77 9.83 5.21C10.12 5.65 10.92 6.19 10.99 6.71C11.06 7.23 10.70 8.00 10.24 8.32C9.78 8.65 8.77 8.53 8.24 8.66Z' fill='%23000'/></svg>");
+        mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M8.24 8.66C7.71 8.79 7.46 8.85 7.07 9.11C6.67 9.38 6.32 10.08 5.88 10.26C5.43 10.43 4.85 10.28 4.37 10.15C3.89 10.03 3.42 9.79 3.00 9.51C2.59 9.22 2.10 8.88 1.90 8.44C1.70 8.00 1.67 7.35 1.79 6.87C1.91 6.38 2.40 5.93 2.62 5.52C2.83 5.11 3.00 4.90 3.08 4.40C3.15 3.90 2.85 3.05 3.06 2.51C3.27 1.97 3.83 1.28 4.34 1.17C4.85 1.05 5.62 1.59 6.12 1.82C6.62 2.05 6.96 2.33 7.36 2.54C7.76 2.74 8.20 2.80 8.52 3.05C8.83 3.31 9.03 3.71 9.25 4.07C9.47 4.43 9.54 4.77 9.83 5.21C10.12 5.65 10.92 6.19 10.99 6.71C11.06 7.23 10.70 8.00 10.24 8.32C9.78 8.65 8.77 8.53 8.24 8.66Z' fill='%23000'/></svg>");
+      }
+      .prose ol {
+        counter-reset: hand-item;
+      }
+      .prose ol > li::before {
+        counter-increment: hand-item;
+        content: counter(hand-item) '.';
+        position: absolute;
+        left: -1.7em;
+        top: -0.06em;
+        width: 1.2em;
+        text-align: right;
+        color: var(--mark, #ff7a1a);
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 1.1em;
+        line-height: inherit;
       }
       .prose li + li {
         margin-top: 0.4em;
@@ -279,27 +297,34 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         padding: 0 28px 90px;
         border-top: 1px solid var(--line);
       }
+      /* set like the wordmark: light, tracked, uppercase, never underlined */
       .detail-foot .back-link {
         display: inline-block;
         padding-top: 28px;
-        font-size: 13px;
-        letter-spacing: 0.06em;
+        font-size: 12px;
+        font-weight: 300;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: opacity 0.2s ease;
+      }
+      .detail-foot .back-link:hover {
+        opacity: 0.55;
       }
 
       /* ---- highlighter: drag across the text to mark it -----------------
          The one splash of colour on the whole site. Marks are painted on a
          fixed canvas overlay (multiply-blended so text stays crisp under
          the ink); dragging is handled in the script below. */
-      .prose {
+      .detail {
         user-select: none;
         -webkit-user-select: none;
         -webkit-touch-callout: none;
         cursor:
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath d='M3 23l2.2-6.2L16.5 5.5a2.6 2.6 0 0 1 3.7 0l.3.3a2.6 2.6 0 0 1 0 3.7L9.2 20.8 3 23z' fill='%23f7ec2e' stroke='%230a0a0a' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M5.2 16.8l4 4' stroke='%230a0a0a' stroke-width='1.2'/%3E%3C/svg%3E")
-            3 22,
+          url('/cursors/pen.svg') 1 23,
           text;
       }
-      .prose a {
+      .detail a {
         cursor: inherit;
       }
       #hl-canvas {
@@ -311,38 +336,18 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         z-index: 5;
         mix-blend-mode: multiply;
       }
-      #hl-hint {
-        position: fixed;
-        right: 28px;
-        bottom: 24px;
-        z-index: 10;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        opacity: 0.45;
-      }
-      @media (max-width: 640px) {
-        #hl-hint {
-          right: 18px;
-          bottom: 18px;
-          font-size: 11px;
-        }
-      }
-
       @media (max-width: 640px) {
         body {
           font-size: 17px;
         }
-        .topbar {
-          padding: 16px 18px;
-        }
         .detail {
-          padding: 92px 20px 80px;
+          padding: 48px 20px 80px;
         }
         .detail-head {
           margin-bottom: 32px;
         }
         .detail-summary {
-          font-size: 18px;
+          font-size: 17px;
         }
         .prose {
           font-size: 17px;
@@ -359,6 +364,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         .detail-foot {
           padding: 0 20px 72px;
         }
+        .detail-foot .back-link {
+          font-size: 11px;
+          letter-spacing: 0.06em;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -369,10 +378,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     </style>
   </head>
   <body>
-    <div class="topbar">
-      <a class="wordmark" href="/">zurara</a>
-      <a class="back-link" href="/">← Index</a>
-    </div>
+    <TopNav cta={cta} />
     <slot />
 
     <script>
@@ -380,18 +386,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       // fluorescent marker. Marks live as DOM Ranges and are repainted from
       // their current client rects, so they follow the text through scrolls
       // and resizes. Fresh page every visit — nothing is stored.
-      const prose = document.querySelector<HTMLElement>('.prose');
-      if (prose) {
+      // the whole article column is markable — head (kicker, date, title,
+      // summary, tags) as well as the MDX body
+      const zone = document.querySelector<HTMLElement>('.detail');
+      if (zone) {
         const canvas = document.createElement('canvas');
         canvas.id = 'hl-canvas';
         document.body.appendChild(canvas);
         const ctx = canvas.getContext('2d')!;
-        const coarse = window.matchMedia('(pointer: coarse)').matches;
-
-        const hint = document.createElement('div');
-        hint.id = 'hl-hint';
-        hint.textContent = coarse ? 'press & hold to highlight' : 'highlight ✎';
-        document.body.appendChild(hint);
 
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -421,8 +423,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
           }
           return null;
         };
-        const inProse = (n: Node | null) =>
-          !!n && prose.contains(n.nodeType === 3 ? n.parentNode : (n as Element));
+        const inZone = (n: Node | null) =>
+          !!n && zone.contains(n.nodeType === 3 ? n.parentNode : (n as Element));
 
         const buildRange = (a: Caret, b: Caret) => {
           const r = document.createRange();
@@ -458,21 +460,48 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         const paintStroke = (s: Stroke) => {
           const rnd = mulberry(s.seed);
           for (const b of bands(s.range!)) {
-            // a band a hair narrower than the line, wobbling slightly,
-            // overshooting the ends — two passes of uneven ink
-            const hh = b.height * 0.78;
-            const y = b.top + (b.height - hh) / 2 + (rnd() * 2.6 - 1.3);
-            const x0 = b.left - (3 + rnd() * 5);
-            const x1 = b.right + (3 + rnd() * 5);
-            for (let pass = 0; pass < 2; pass++) {
-              const jitter = (rnd() * 2 - 1) * (pass ? 1.6 : 0.4);
-              const h2 = hh * (pass ? 0.82 : 1);
-              ctx.globalAlpha = pass ? 0.35 : 0.55;
-              ctx.beginPath();
-              if (ctx.roundRect) ctx.roundRect(x0, y + jitter + (hh - h2) / 2, x1 - x0, h2, h2 * 0.45);
-              else ctx.rect(x0, y + jitter + (hh - h2) / 2, x1 - x0, h2);
-              ctx.fill();
+            // A wave ruled under the line, in ONE pass, DRAWN OUT: every
+            // term below depends on how far the pen has travelled from where
+            // it started — never on where the stroke ends. So the part already
+            // laid down never reshapes as the drag grows; the line simply
+            // gets longer, the way a pen draws rather than a rubber band
+            // stretches. Nothing is regular: the baseline wanders, the wave
+            // stretches and tightens as it goes, its height breathes, and a
+            // fine tremble sits on top.
+            const x0 = b.left - (2 + rnd() * 5);
+            const x1 = b.right + (2 + rnd() * 5);
+            const base = b.top + b.height * 0.9 + (rnd() * 1.6 - 0.8);
+            const amp = Math.max(1.5, Math.min(3, b.height * 0.11));
+            const len = Math.max(9, b.height * 0.62); // nominal wavelength
+            const phase = rnd() * Math.PI * 2;
+            // the hand wanders off the ruled line and back, twice over
+            const sag1 = (rnd() * 2 - 1) * 1.3;
+            const sag2 = (rnd() * 2 - 1) * 0.9;
+            // …and its rhythm drifts: wavelength and height both breathe
+            const lenDrift = 0.18 + rnd() * 0.3;
+            const ampDrift = 0.2 + rnd() * 0.35;
+            const w1 = rnd() * Math.PI * 2;
+            const w2 = rnd() * Math.PI * 2;
+            const w3 = rnd() * Math.PI * 2;
+
+            ctx.globalAlpha = 0.92;
+            ctx.lineWidth = 2.3 + rnd() * 0.7;
+            let ph = phase;
+            ctx.beginPath();
+            const step = 1.6;
+            for (let x = x0, first = true; x <= x1; x += step, first = false) {
+              const u = (x - x0) / 90; // distance travelled, in slow cycles
+              const L = len * (1 + lenDrift * Math.sin(u * 2.1 + w1));
+              const A = amp * (1 + ampDrift * Math.sin(u * 3.3 + w2));
+              if (!first) ph += (step / L) * Math.PI * 2;
+              // a fine tremble on top of everything, stable per x
+              const shake = Math.sin(x * 0.7 + w3) * 0.22 + Math.sin(x * 1.9 + w1) * 0.13;
+              const drift = sag1 * Math.sin(u * 0.9 + w3) + sag2 * Math.sin(u * 0.37 + w2);
+              const y = base + drift + shake + Math.sin(ph) * A;
+              if (first) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
             }
+            ctx.stroke();
           }
         };
 
@@ -481,7 +510,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
           queued = false;
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = '#f7ec2e';
+          ctx.strokeStyle = '#ff7a1a'; // marker orange — the site's one colour
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
           for (const s of strokes) paintStroke(s);
           if (active?.range) paintStroke(active);
           ctx.globalAlpha = 1;
@@ -499,14 +530,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 
         const begin = (x: number, y: number) => {
           const c = caretAt(x, y);
-          if (!c || !inProse(c.node)) return false;
+          if (!c || !inZone(c.node)) return false;
           active = { a: c, range: null, seed: (Math.random() * 1e9) | 0 };
           return true;
         };
         const extend = (x: number, y: number) => {
           if (!active) return;
           const c = caretAt(x, y);
-          if (!c || !inProse(c.node)) return;
+          if (!c || !inZone(c.node)) return;
           const r = buildRange(active.a, c);
           if (r) {
             active.range = r;
@@ -518,7 +549,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         let lpTimer = 0;
         let lpFrom: { x: number; y: number } | null = null;
         let touchInk = false;
-        prose.addEventListener('pointerdown', (e) => {
+        zone.addEventListener('pointerdown', (e) => {
           if (e.pointerType === 'touch') {
             lpFrom = { x: e.clientX, y: e.clientY };
             lpTimer = window.setTimeout(() => {
