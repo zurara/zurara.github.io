@@ -65,6 +65,62 @@ const features = [
   { icon: 'bot',    title: 'Let your agent build', body: 'Skip MCP. It is just a single HTML file that is completely open to edit.' },
 ];
 
+// The What's new drawer. Newest first; the first entry's version is the one
+// the hero pill names. Keep in step with CHANGELOG.md in zurara/minimap.
+const releases = [
+  {
+    version: '1.0.1',
+    date: 'Sep 24, 2026',
+    groups: [
+      {
+        title: 'Notes',
+        items: [
+          '\u2318-click a link in a note to open it, or a [[wiki link]] to jump to that node. Hold \u2318 to see what is clickable.',
+          'The same \u2318-click works on notes shown on the map.',
+          'Show notes on map now shows the whole note, not just 3 lines.',
+          'SVG and PNG exports keep note text inside the node box. Long URLs wrap.',
+        ],
+      },
+      {
+        title: 'Connections',
+        items: [
+          'The label field suggests labels already in the map, or lets you create a new one.',
+          'Connections stay faint until you hover or select a node, then draw clearly with their labels.',
+          'Thinner, dash-dot lines. Each label sits in a pill with an arrow for direction.',
+          'Select a node to see its connections listed on the left (A label \u2192 B). Click a name to jump there.',
+        ],
+      },
+      {
+        title: 'Canvas',
+        items: [
+          'A level slider in the bottom right unfolds the whole map to any depth.',
+          'Free nodes: \u2318-click empty canvas to start one. Connect it and it follows that node, folding with it. Drop it on a tree node to make it a child.',
+        ],
+      },
+      {
+        title: 'Fixed',
+        items: ['Pressing Enter on an empty title could confirm twice and throw an error.'],
+      },
+    ],
+  },
+  {
+    version: '1.0.0',
+    date: 'Sep 22, 2026',
+    groups: [
+      {
+        title: 'First release',
+        items: [
+          'One self-contained HTML file. No install, no account, no network. Maps autosave in your browser.',
+          'Keyboard-first mapping, drag to reorder, Map and Outline views.',
+          'Markdown notes, statuses, cross-branch connections, search, undo and redo.',
+          'Export JSON, Markdown, SVG and PNG. Import JSON.',
+          'Three agent skills and two converters, installable on Claude Code, Gemini CLI and Codex.',
+        ],
+      },
+    ],
+  },
+];
+
 // The download also carries three agent skills + the markdown->JSON converters.
 const skills = [
   // one sentence each, so the three cards read as a set
@@ -131,6 +187,11 @@ const skills = [
 
     <main>
       <section class="hero">
+        <button class="news" type="button" aria-haspopup="dialog" aria-controls="news">
+          <span class="news-v">{releases[0].version}</span>
+          <span class="news-t">What's new</span>
+          <svg class="news-caret" aria-hidden="true"><use href="#d-chevron" /></svg>
+        </button>
         <h1
           >Minimap <em>is a minimal<br class="h1-br" /> mind mapping</em><svg
             class="h1-hand"
@@ -259,6 +320,43 @@ const skills = [
       </section>
 
     </main>
+
+    <dialog class="drawer" id="news" aria-labelledby="news-title">
+      <div class="drawer-sheet">
+        <header class="drawer-head">
+          <h2 id="news-title">What's new</h2>
+          <button class="drawer-x" type="button" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </header>
+        <div class="drawer-body">
+          {
+            releases.map((r, n) => (
+              <section class:list={['rel', { latest: n === 0 }]}>
+                <p class="rel-meta">
+                  <span class="rel-v">{r.version}</span>
+                  {n === 0 && <span class="rel-latest">Latest</span>}
+                  <time>{r.date}</time>
+                </p>
+                {r.groups.map((g) => (
+                  <div class="rel-group">
+                    <h3>{g.title}</h3>
+                    <ul>
+                      {g.items.map((it) => (
+                        <li>{it}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </section>
+            ))
+          }
+          <p class="drawer-foot">
+            Full history in <a class="u" href={`${repo}/blob/main/CHANGELOG.md`} target="_blank" rel="noopener">CHANGELOG.md</a>
+          </p>
+        </div>
+      </div>
+    </dialog>
 
     <footer class="foot">
       <div class="foot-row">
@@ -901,6 +999,229 @@ const skills = [
         vertical-align: -0.24em;
       }
 
+      /* ---------- what's new ---------- */
+      /* above the headline, deliberately unframed so it cannot be mistaken
+         for the Star button in the bar: the version is a filled chip, the
+         words are plain text, and the text is underlined on hover */
+      .news {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 22px;
+        padding: 0;
+        font: 400 14px/1 var(--sans);
+        color: var(--ink-2);
+        background: none;
+        border: 0;
+        cursor: pointer;
+        transition: color 0.18s;
+      }
+      .news-v {
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--paper);
+        font-size: 12px;
+        letter-spacing: 0.02em;
+      }
+      .news-t {
+        text-decoration: underline transparent;
+        text-underline-offset: 4px;
+        text-decoration-thickness: 1px;
+        transition: text-decoration-color 0.18s;
+      }
+      .news:hover,
+      .news:focus-visible {
+        color: var(--ink);
+        outline: none;
+      }
+      .news:hover .news-t,
+      .news:focus-visible .news-t {
+        text-decoration-color: currentColor;
+      }
+      /* the drawn chevron points down; turned, it points at the drawer's
+         content the way a "read more" arrow would */
+      .news-caret {
+        width: 11px;
+        height: 8px;
+        fill: currentColor;
+        stroke: currentColor;
+        stroke-width: 4.5;
+        transform: rotate(-90deg);
+      }
+
+      /* the drawer: a native modal dialog pinned to the bottom edge. The
+         sheet slides up on open and back down before the dialog closes. */
+      .drawer {
+        position: fixed;
+        inset: auto 0 0 0;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        overflow: visible;
+      }
+      .drawer::backdrop {
+        background: rgba(10, 10, 10, 0.32);
+        opacity: 0;
+        transition: opacity 0.28s;
+      }
+      .drawer.is-open::backdrop {
+        opacity: 1;
+      }
+      .drawer-sheet {
+        position: relative;
+        isolation: isolate;
+        width: min(100%, 720px);
+        max-height: min(82vh, 760px);
+        margin-inline: auto;
+        display: flex;
+        flex-direction: column;
+        transform: translateY(100%);
+        transition: transform 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .drawer.is-open .drawer-sheet {
+        transform: none;
+      }
+      /* same hand as the cells: the paper and its edge live on a layer of
+         their own, so the filter wobbles the outline and never the text */
+      .drawer-sheet::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 -24px;
+        z-index: -1;
+        background: var(--paper);
+        border: 1.5px solid var(--ink);
+        border-radius: 22px 22px 0 0;
+        filter: url(#rough-a);
+      }
+      .drawer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px clamp(20px, 4vw, 36px) 10px;
+      }
+      .drawer-head h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 1.9rem;
+        line-height: 1;
+      }
+      .drawer-x {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        margin-right: -8px;
+        border: 0;
+        border-radius: 999px;
+        background: none;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .drawer-x:hover,
+      .drawer-x:focus-visible {
+        background: var(--rule);
+        outline: none;
+      }
+      .drawer-x svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+      }
+      .drawer-body {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 6px clamp(20px, 4vw, 36px) 36px;
+      }
+      .rel + .rel {
+        margin-top: 26px;
+        padding-top: 22px;
+        border-top: 1px dashed var(--ink-3);
+      }
+      .rel-meta {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+      .rel-v {
+        font-family: var(--display);
+        font-size: 1.45rem;
+        line-height: 1;
+      }
+      .rel-latest {
+        padding: 2px 8px;
+        border: 1px solid var(--ink);
+        border-radius: 999px;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .rel-meta time {
+        margin-left: auto;
+        font-size: 13px;
+        color: var(--ink-3);
+      }
+      .rel-group {
+        margin-top: 14px;
+      }
+      .rel-group h3 {
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        margin-bottom: 6px;
+      }
+      .rel-group ul {
+        list-style: none;
+        display: grid;
+        gap: 6px;
+      }
+      .rel-group li {
+        position: relative;
+        padding-left: 18px;
+        font-size: 14.5px;
+        line-height: 1.55;
+      }
+      .rel-group li::before {
+        content: '';
+        position: absolute;
+        left: 3px;
+        top: 0.62em;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--ink);
+      }
+      /* older releases step back a shade so the latest reads first */
+      .rel:not(.latest) li {
+        color: var(--ink-2);
+      }
+      .rel:not(.latest) li::before {
+        background: var(--ink-3);
+      }
+      .drawer-foot {
+        margin-top: 28px;
+        font-size: 13px;
+        color: var(--ink-3);
+      }
+      .drawer-foot .u {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      html.drawer-lock {
+        overflow: hidden;
+      }
+
       /* ---------- responsive ---------- */
       @media (max-width: 900px) {
         .bento {
@@ -996,6 +1317,56 @@ const skills = [
         addEventListener('resize', () => {
           clearTimeout(t);
           t = setTimeout(centreMap, 150);
+        });
+      }
+    </script>
+
+    <script>
+      // What's new: a native <dialog> for focus trapping and Esc, with the
+      // slide handled by a class so the sheet can animate out before close().
+      const drawer = document.querySelector('.drawer');
+      const newsBtn = document.querySelector('.news');
+      if (drawer && newsBtn) {
+        const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+        const openDrawer = () => {
+          drawer.showModal();
+          document.documentElement.classList.add('drawer-lock');
+          drawer.querySelector('.drawer-body').scrollTop = 0;
+          requestAnimationFrame(() => requestAnimationFrame(() => drawer.classList.add('is-open')));
+        };
+        const closeDrawer = () => {
+          if (!drawer.open) return;
+          drawer.classList.remove('is-open');
+          const done = () => {
+            drawer.close();
+            document.documentElement.classList.remove('drawer-lock');
+          };
+          if (reduce.matches) return done();
+          const sheet = drawer.querySelector('.drawer-sheet');
+          const t = setTimeout(done, 450);
+          sheet.addEventListener(
+            'transitionend',
+            () => {
+              clearTimeout(t);
+              done();
+            },
+            { once: true },
+          );
+        };
+        newsBtn.addEventListener('click', openDrawer);
+        drawer.querySelector('.drawer-x').addEventListener('click', closeDrawer);
+        // Esc: take over the native close so the sheet slides out too
+        drawer.addEventListener('cancel', (e) => {
+          e.preventDefault();
+          closeDrawer();
+        });
+        // a click that lands on the dialog itself, not the sheet, is the backdrop
+        drawer.addEventListener('click', (e) => {
+          if (!e.target.closest('.drawer-sheet')) closeDrawer();
+        });
+        drawer.addEventListener('close', () => {
+          document.documentElement.classList.remove('drawer-lock');
+          newsBtn.focus();
         });
       }
     </script>
