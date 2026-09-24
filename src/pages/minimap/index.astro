@@ -247,7 +247,7 @@ const skills = [
           <span class="shot-map">
             <iframe
               class="shot-frame"
-              src="/minimap/mindmap.html"
+              src="/minimap/mindmap.html?demo"
               title="Live preview of the mindmap tool"
               loading="lazy"
               tabindex="-1"
@@ -1275,38 +1275,14 @@ const skills = [
     </style>
 
     <script>
-      // The preview frame is the real app, so it opens on whatever view is
-      // stored — which is rarely centred. Ask it to fit the map to the frame,
-      // then put the stored state back: the preview is a picture, and it must
-      // not rewrite the pan/zoom of the visitor's own map.
+      // The preview frame is the real app in demo mode (?demo): it always
+      // opens on the Start here map and never reads or writes the visitor's
+      // storage. It still opens on the app's own view, so fit it to the frame.
       const frame = document.querySelector('.shot-frame');
-      const KEY = 'mindmap.v1';
-      // Read here, not on frame load: this page and the app share an origin, and
-      // by the time the frame is up the app has already written its own view.
-      let pristine = null;
-      try {
-        pristine = localStorage.getItem(KEY);
-      } catch (e) {}
 
       function centreMap() {
         const w = frame && frame.contentWindow;
-        if (!w || typeof w.fit !== 'function') return;
-        w.fit();
-        if (pristine == null) return;
-        // Every fit — the app's own on boot, and ours — queues a write on a
-        // 300ms debounce. Cancel the pending one inside the frame and put the
-        // snapshot back, repeatedly while the frame settles: this preview must
-        // never rewrite the pan/zoom of the visitor's own map.
-        const guard = () => {
-          try {
-            w.eval('clearTimeout(saveT); saveT = null;');
-          } catch (e) {}
-          try {
-            if (w.localStorage.getItem(KEY) !== pristine) w.localStorage.setItem(KEY, pristine);
-          } catch (e) {}
-        };
-        guard();
-        [300, 700, 1200, 2000].forEach((ms) => setTimeout(guard, ms));
+        if (w && typeof w.fit === 'function') w.fit();
       }
 
       if (frame) {
