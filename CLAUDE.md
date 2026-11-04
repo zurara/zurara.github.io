@@ -49,7 +49,11 @@ npm run preview
     renders cards, and runs the conveyor in an inline `<script>`. Cards are
     absolutely positioned; JS sets `translate/rotate/scale` each frame. Knobs at
     the top of the script: `TILTS`, `YPCT`, `SCALES`, `SPACING`, wheel `* 0.9`,
-    lerp `* 0.12`. Wheel + touch + arrow-key driven. No snap.
+    lerp `* 0.12`. Wheel + touch + arrow-key driven. No snap. Fixed chrome:
+    wordmark top-left (`.cv-tl`), the positioning line bottom-left (`.cv-bl`,
+    "Product designer • I help early-stage founders turn ideas into thoughtful
+    products" — plain text in the hint's chrome type; stacks above the hint
+    under 640px), the scroll/draw hint bottom-right (`.cv-br`).
   - `layouts/MinimalLayout.astro` — white/black shell, fonts only,
     `overflow:hidden` (fixed height), **no** Header/Footer/Lenis.
 - **Detail pages** `src/pages/work/[...slug].astro`, `writing/[...slug].astro`
