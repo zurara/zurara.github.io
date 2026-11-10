@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#F6F4EF">
+<title>有手就行</title>
+<meta name="description" content="有手就行：把打发时间的手作，变成屏幕上的小游戏。刺绣、棒针围巾。">
+<meta property="og:title" content="有手就行">
+<meta property="og:description" content="把打发时间的手作，变成屏幕上的小游戏。刺绣、棒针围巾，键盘或手指都能织。">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="home">
+<canvas id="c" aria-label="织物"></canvas>
+
+<header class="top">
+  <nav class="crumb">
+    <a href="#/" id="crumb-home">有手就行</a><span id="crumb-sep" class="sep" hidden>/</span><span id="crumb-piece" hidden></span>
+  </nav>
+  <div id="score" class="score" aria-live="polite">
+    <span class="num"><b id="len">0.0</b><i>cm</i></span>
+    <small id="next"></small>
+  </div>
+</header>
+
+<main id="home">
+  <div id="table" class="table"></div>
+  <p id="more" class="more"></p>
+</main>
+
+<div id="toast" role="status"></div>
+
+<footer id="dock" class="dock">
+  <span id="stname"></span>
+  <div id="caps"></div>
+  <small id="tip"></small>
+</footer>
+
+<button id="snd" class="icon" type="button"></button>
+<button id="lang" class="icon" type="button"></button>
+
+<script src="core.js"></script>
+<script src="embroidery.js"></script>
+<script src="knitting.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
