@@ -2,47 +2,29 @@
 <html lang="zh-Hans">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#F6F4EF">
-<title>有手就行</title>
-<meta name="description" content="有手就行：把打发时间的手作，变成屏幕上的小游戏。刺绣、棒针围巾。">
-<meta property="og:title" content="有手就行">
-<meta property="og:description" content="把打发时间的手作，变成屏幕上的小游戏。刺绣、棒针围巾，键盘或手指都能织。">
-<meta property="og:type" content="website">
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>有手就行 · 搬家了</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://hands-on.withzurara.com/">
+<meta http-equiv="refresh" content="3;url=https://hands-on.withzurara.com/">
+<script>
+/* 有手就行搬到了 hands-on.withzurara.com。
+ * 跳过去时把这里的存档放进 # 后面带走（不会发到服务器），原来的 #/页面 也保留。 */
+(function () {
+  var to = location.hash.replace(/^#\/?/, ''), carry = {}, n = 0;
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (/^hands-on\.[a-z]+$/.test(k)) { carry[k] = localStorage.getItem(k); n++; }
+    }
+  } catch (e) {}
+  var h = n ? '#carry=' + encodeURIComponent(JSON.stringify(carry)) + (to ? '&to=' + encodeURIComponent('/' + to) : '')
+            : (to ? '#/' + to : '');
+  location.replace('https://hands-on.withzurara.com/' + h);
+})();
+</script>
 </head>
-<body class="home">
-<canvas id="c" aria-label="织物"></canvas>
-
-<header class="top">
-  <nav class="crumb">
-    <a href="#/" id="crumb-home">有手就行</a><span id="crumb-sep" class="sep" hidden>/</span><span id="crumb-piece" hidden></span>
-  </nav>
-  <div id="score" class="score" aria-live="polite">
-    <span class="num"><b id="len">0.0</b><i>cm</i></span>
-    <small id="next"></small>
-  </div>
-</header>
-
-<main id="home">
-  <div id="table" class="table"></div>
-  <p id="more" class="more"></p>
-</main>
-
-<div id="toast" role="status"></div>
-
-<footer id="dock" class="dock">
-  <span id="stname"></span>
-  <div id="caps"></div>
-  <small id="tip"></small>
-</footer>
-
-<button id="snd" class="icon" type="button"></button>
-<button id="lang" class="icon" type="button"></button>
-
-<script src="core.js"></script>
-<script src="embroidery.js"></script>
-<script src="knitting.js"></script>
-<script src="app.js"></script>
+<body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#F6F4EF;color:#1E6BC6;font:500 13px/1.6 'Helvetica Neue',Helvetica,Arial,'PingFang SC',sans-serif;letter-spacing:.12em">
+<p>有手就行搬到了 <a href="https://hands-on.withzurara.com/" style="color:inherit">hands-on.withzurara.com</a></p>
 </body>
 </html>
